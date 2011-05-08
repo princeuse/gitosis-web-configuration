@@ -104,6 +104,7 @@ class Application_Model_Db_Gitosis_UsersGroups extends MBit_Db_Table_Abstract
      * @param int $groupId
      * @param int $userId
      * @return bool
+     * @deprecated
      */
     public function userIsInGroup($groupId, $userId)
     {
@@ -112,5 +113,24 @@ class Application_Model_Db_Gitosis_UsersGroups extends MBit_Db_Table_Abstract
             return true;
         }
         return false;
+    }
+
+    /**
+     * getting groups of a user
+     *
+     * @param int $userId
+     * @return array
+     */
+    public function getUserGroups($userId)
+    {
+        $select = $this->select(self::SELECT_WITHOUT_FROM_PART);
+        $select->from($this->_name, 'gitosis_group_id')
+               ->where('gitosis_user_id = ?', $userId);
+
+        $rows = $this->fetchAll($select);
+        if ($rows->count() > 0) {
+            return $rows->toArray();
+        }
+        return null;
     }
 }

@@ -54,7 +54,8 @@ class UserController extends MBit_Controller_Action
             $this->_redirectToList();
         }
 
-        $user = $this->_model->getById($id);
+        $user = new Application_Model_Gitosis_User();
+        $user->load($id);
 
         $model  = new Application_Model_Db_Gitosis_Groups();
         $select = $model->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
@@ -65,8 +66,8 @@ class UserController extends MBit_Controller_Action
         $paginator->setCurrentPageNumber($this->_getParam('page', 1));
 
         $this->view->pager   = $paginator;
-        $this->view->user   = $user['gitosis_user_name'];
-        $this->view->userId = $user['gitosis_user_id'];
+        $this->view->user    = $user->getName();
+        $this->view->userId  = $user->getId();
     }
 
     /**
@@ -85,25 +86,29 @@ class UserController extends MBit_Controller_Action
         $groupId = $this->_getParam('groupId');
 
         $message = '';
-        $model = new Application_Model_Db_Gitosis_UsersGroups();
-        if ($action == 'add') {
-            $flag = $model->addUserToGroup($groupId, $userId);
-            if ($flag) {
-                $message = 'Der Benutzer wurde erfolgreich der Gruppe hinzugefügt';
-            } else {
-                $message = 'Der Benutzer konnte nicht zur Gruppe hinzugefügt werden';
+        $user = new Application_Model_Gitosis_User();
+        $user->load($userId);
+
+        if (!$user->getId()) {
+            $message = 'Der Benutzer existiert nicht';
+        } elseif (!empty($action) &&
+                  ($action == 'add') || $action == 'remove') {
+
+            if ($action == 'add') {
+                $user->addGroup($groupId);
+            } elseif ($action == 'remove') {
+                $user->removeGroup($groupId);
             }
-        } elseif ($action == 'remove') {
-            $flag = $model->removeUserFromGroup($groupId, $userId);
-            if ($flag) {
-                $message = 'Der Benutzer wurde erfolgreich aus der Gruppe entfernt';
+
+            if ($user->save()) {
+                $message = "Die Änderung des Datensatzes war erfolgreich";
             } else {
-                $message = 'Der Benutzer konnte nicht aus der Gruppe entfernt werden';
+                $message = "Es trat ein Fehler beim Ändern des Datensatzes auf";
             }
+
         } else {
             $message = 'Es wurde eine nicht bekannte Aktion "' . $action . '" verwendet';
         }
-
         $this->view->message = $message;
     }
 
