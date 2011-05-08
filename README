@@ -1,0 +1,15 @@
+Gitosis web configuration
+
+#1 What is it?
+This application is written in php and uses zend framework (http://framework.zend.com). Finally it should be
+possible to administer gitosis repositories, users, groups aso. in this application.
+
+#2 What is done?
+The initial structure is done. Import of an existing gitosis configuration should work.
+
+#3 What will be done?
+- deploying new configuration
+- audit log for automatic commit messages
+- securing the whole application (admin user management)
+- dashboard view for non-privileged users for viewing repositories they have access to
+
