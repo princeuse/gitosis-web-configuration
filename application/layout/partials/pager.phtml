@@ -1,0 +1,64 @@
+<?php
+/**
+ * MB-it Gitosis Web Configuration
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  - Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  - Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  - Neither the name MB-it nor the names of its contributors may be used to
+ *    endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
+ * @author    Marc Becker <m.becker@mb-it.com>
+ * @category  MB-it
+ * @package   View
+ */
+?>
+<?php if ($this->pageCount): ?>
+
+    <div id="pager">
+
+        <?php if (isset($this->previous)): ?>
+            <a href="<?php echo $this->url(array('page' => $this->first)); ?>">
+              <img src="<?php echo $this->baseUrl('images/icons/go-first.png'); ?>" alt="zur ersten Seite" title="zur ersten Seite" />
+            </a>
+        <?php else: ?>
+            <img src="<?php echo $this->baseUrl('images/icons/go-first-disabled.png'); ?>" alt="zur ersten Seite" title="zur ersten Seite" />
+        <?php endif; ?>
+
+        <?php if (isset($this->previous)): ?>
+            <a href="<?php echo $this->url(array('page' => $this->previous)); ?>">
+                <img src="<?php echo $this->baseUrl('images/icons/go-previous.png'); ?>" alt="zur vorherigen Seite" title="zur vorherigen Seite" />
+            </a>
+        <?php else: ?>
+            <img src="<?php echo $this->baseUrl('images/icons/go-previous-disabled.png'); ?>" alt="zur vorherigen Seite" title="zur vorherigen Seite" />
+        <?php endif; ?>
+
+        <?php if (isset($this->next)): ?>
+          <a href="<?php echo $this->url(array('page' => $this->next)); ?>">
+            <img src="<?php echo $this->baseUrl('images/icons/go-next.png'); ?>" alt="zur n&auml;chsten Seite" title="zur n&auml;chsten Seite" />
+          </a>
+        <?php else: ?>
+          <img src="<?php echo $this->baseUrl('images/icons/go-next-disabled.png'); ?>" alt="zur n&auml;chsten Seite" title="zur n&auml;chsten Seite" />
+        <?php endif; ?>
+
+        <?php if (isset($this->next)): ?>
+          <a href="<?php echo $this->url(array('page' => $this->last)); ?>">
+            <img src="<?php echo $this->baseUrl('images/icons/go-last.png'); ?>" alt="zur letzten Seite" title="zur letzten Seite" />
+          </a>
+        <?php else: ?>
+          <img src="<?php echo $this->baseUrl('images/icons/go-last-disabled.png'); ?>" alt="zur letzten Seite" title="zur letzten Seite" />
+        <?php endif; ?>
+
+    </div>
+<?php endif; ?>

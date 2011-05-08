@@ -1,0 +1,35 @@
+@media screen, projection {
+    * html .page_margins {
+        width: auto;
+        width: expression((document.documentElement && document.documentElement.clientHeight) ? ((document.documentElement.clientWidth < 740) ? "740px" : ((document.documentElement.clientWidth > (90 * 16 * (parseInt(this.parentNode.currentStyle.fontSize) / 100))) ? "90em" : "auto" )) : ((document.body.clientWidth < 740) ? "740px" : ((document.body.clientWidth > (90 * 16 * (parseInt(this.parentNode.currentStyle.fontSize) / 100))) ? "90em" : "auto" )));
+    }
+
+    form fieldset legend { padding-top: 20px; padding-bottom: 10px; font-style: italic; font-weight: bold; }
+
+    #footer { font-size: 10px; }
+    #footer a { color: #666; }
+
+    #main { margin: 40px 0px; padding: 0px; }
+
+    #main h1 { padding-bottom: 20px; padding-top: 20px; }
+
+    #main table { border-collapse: collapse; }
+    #main table td, #main table th { padding: 5px; border: 1px solid black; }
+    #main table .center { text-align: center; }
+
+    #pager { margin-top: 10px; }
+
+    #main form label { display: none; }
+    #main form p label { float: left; width: 120px; display: block; }
+    #main form label.required { font-weight: bold; }
+    #main form label.required:after { content: '*'; }
+    #main ul.repositories li { list-style-type: none; }
+    #main ul.repositories li span { font-weight: bold; }
+
+    #toolbar { float: right; margin-top: 15px; }
+    #toolbar a { text-decoration: none; color: #666; line-height: 20px; }
+    #toolbar a.back { text-decoration: none; color: #666; line-height: 23px; }
+    #toolbar a img { vertical-align: bottom; }
+
+    #ajaxLoader { width:100%; text-align:center; bottom:10px; position:absolute; }
+}
