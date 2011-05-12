@@ -1,0 +1,109 @@
+<?php
+/**
+ * MB-it Gitosis Web Configuration
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  - Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  - Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  - Neither the name MB-it nor the names of its contributors may be used to
+ *    endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
+ * @author    Marc Becker <m.becker@mb-it.com>
+ * @category  MB-it
+ * @package   View
+ */
+?>
+<?php echo  $this->doctype() ?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <base href="<?php echo $this->baseUrl(true); ?>"/>
+    <meta http-equiv="content-type" content="text/html; charset=<?php echo $this->getEncoding() ?>"/>
+    <meta name="google-site-verification" content="RPhUUDkdZEnd4NlG93PY9zSfP6EVYWDGihClJIqh_KE" />
+
+    <?php echo $this->headTitle() ?>
+
+
+    <?php echo $this->headScript()
+                    ->offsetSetFile(-100,$this->baseUrl('/scripts/jquery-1.5.2.min.js')); ?>
+
+    <?php echo $this->headLink()->appendStylesheet($this->baseUrl() . '/styles/screen.css')
+                                ->headLink(array('rel' => 'shortcut icon', 'type' => $this->baseUrl() . '/image/x-icon', 'href' => '/images/favicon.ico'), 'PREPEND'); ?>
+</head>
+<body>
+    <div id="page">
+        <div id="header">
+            <div id="logo">
+                <a href="http://www.mb-it.com"><img src="<?php echo $this->baseUrl(); ?>/images/logo_mbit.png" alt="MB-it" /></a>
+            </div>
+
+            <div id="mainnav">
+                <?php echo $this->navigation()->menu(); ?>
+            </div>
+
+            <div id="subnav">
+                <?php // echo $this->navi()->getSubNavi(); ?>
+            </div>
+        </div>
+
+        <div id="subline">
+                <ul>
+                    <li class="greenbox"><a href="<?php echo $this->url(); ?>"><h2>MB-it</h2><p>Kompetenzen für<br />Ihren Erfolg</p></a></li>
+                    <li class="whitebox"><a href="<?php echo $this->url(); ?>"><h2><span>Web</span>entwicklung</h2><p>Individuallösungen, Dynamische Webinhalte, Shopsysteme und mehr&hellip;</p></a></li>
+                    <li class="whitebox"><a href="<?php echo $this->url(); ?>"><h2><span>Server</span> Support</h2><p>Administration, Konfiguration, und Netzwerkbetreuung für Linux und Windows</p></a></li>
+                    <li class="whitebox"><a href="<?php echo $this->url(); ?>"><h2><span>Web</span> Hosting</h2><p>Kompetenter Hosting Partner zu fairen Preisen, schnelle Anbindung, tägliche Backups</p></a></li>
+                </ul>
+        </div>
+
+        <div id="main">
+
+            <div id="col1">
+                <div id="content">
+                    <?php echo $this->layout()->content; ?>
+                </div>
+            </div>
+
+            <div id="col2">
+                <div class="box">
+                    <h4>Kunden<span>portal</span></h4>
+                    <form action="http://portal.mb-it.com/auth/login" id="login" class="login_form" method="post">
+                        <div>
+                            <input src="<?php echo $this->baseUrl(); ?>/images/btn_login.png" type="image" class="loginbutton" />
+                            <input name="name" type="text" class="loginfield" />
+                            <input name="password" type="password" class="loginfield" />
+                        </div>
+                    </form>
+                </div>
+                <br />
+
+                <div class="box">
+                    <h4>Ansprech<span>partner</span></h4>
+                    <div class="ansprechpartner">
+                        <img src="<?php echo $this->baseUrl(); ?>/images/pic_ansprechpartner.jpg" alt="Marc Becker" />
+                        <p><b>Marc Becker</b><br />0 61 31/97 13 853<br /><a class="mailLink" href="mailto:m.becker@mb-it.com">E-Mail</a><a href="http://www.xing.com/profile/Marc_Becker" target="_blank" rel="me"><img src="http://www.xing.com/img/buttons/1_de_btn.gif" width="85" height="23" alt="XING" border="0" /></a></p>
+                    </div>
+                </div>
+
+            </div>
+
+        <p><br class="clearboth" /></p>
+        </div>
+
+        <div id="footer">
+            <span id="copyright">&copy; 2011 MB-it. Alle Rechte vorbehalten. </span>
+            <span id="metanav">
+                <a href="<?php echo $this->url(); ?>">Datenschutz</a> | <a href="<?php echo $this->url(); ?>">Nutzungsbedingungen</a> | <a href="<?php echo $this->url(); ?>">Impressum</a></span>
+        </div>
+    </div>
+</body>
+</html>

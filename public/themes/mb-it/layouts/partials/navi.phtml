@@ -1,0 +1,9 @@
+<ul>
+    <?php foreach ($this->entries as $entry) :?>
+        <?php if ($entry['active']):?>
+            <li class="active"><a href="<?php echo $this->url(array(), $entry['route'], true); ?>"><span><?php echo $this->escape($entry['title']); ?></span></a></li>
+        <?php else: ?>
+            <li><a href="<?php echo $this->url(array(), $entry['route'], true); ?>"><span><?php echo $this->escape($entry['title']); ?></span></a></li>
+        <?php endif; ?>
+    <?php endforeach; ?>
+</ul>
