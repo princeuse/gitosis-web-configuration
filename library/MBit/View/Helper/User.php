@@ -21,19 +21,19 @@
  * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
  * @author    Marc Becker <m.becker@mb-it.com>
  * @category  MB-it
- * @package   View-Helper
+ * @package   Lib
  */
 
 /**
  * @category MB-it
- * @package  View-Helper
+ * @package  Lib
  */
-class Zend_View_Helper_User extends Zend_View_Helper_Abstract
+class MBit_View_Helper_User extends Zend_View_Helper_Abstract
 {
     /**
      * constructor
      *
-     * @return Application_View_Helper_User
+     * @return MBit_View_Helper_User
      */
     public function user()
     {

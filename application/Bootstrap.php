@@ -44,11 +44,25 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
      */
     protected function _initView()
     {
+        $this->bootstrap('autoload');
+        $themeModel = MBit_Theme::getInstance($this->getOption('gitosis_theme'));
+        try  {
+            $themeModel->setTheme($this->getOption('gitosis_theme'));
+        } catch (MBit_Theme_Exception $e) {
+            $themeModel->setTheme('mb-it');
+        }
+        
+        $layout = Zend_Layout::startMvc()
+            ->setLayout('layout')
+            ->setLayoutPath($themeModel->getLayoutPath())
+            ->setContentKey('content');
+
         $view = new Zend_View();
         $view->doctype('XHTML1_STRICT');
         $view->setEncoding('UTF-8');
-
-        $view->addScriptPath(APPLICATION_PATH . '/layout/partials');
+        $view->setBasePath($themeModel->getViewPath());
+        $view->setScriptPath($themeModel->getViewScriptPath());
+        $view->addScriptPath($themeModel->getPartialPath());
 
         $viewRenderer = Zend_Controller_Action_HelperBroker::getStaticHelper('ViewRenderer');
         $viewRenderer->setView($view);
