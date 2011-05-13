@@ -37,14 +37,16 @@
     <?php echo $this->headScript()
                     ->offsetSetFile(-100,$this->baseUrl('/scripts/jquery-1.5.2.min.js')); ?>
 
-    <?php echo $this->headLink()->appendStylesheet($this->baseUrl() . '/styles/screen.css')
-                                ->headLink(array('rel' => 'shortcut icon', 'type' => $this->baseUrl() . '/image/x-icon', 'href' => '/images/favicon.ico'), 'PREPEND'); ?>
+    <?php echo $this->headLink()->appendStylesheet($this->baseUrl('/themes/mb-it/styles/style.css'))
+                                // ->headLink(array('rel' => 'shortcut icon', 'type' => $this->baseUrl() . '/image/x-icon', 'href' => '/images/favicon.ico'), 'PREPEND');
+    ?>
+
 </head>
 <body>
     <div id="page">
         <div id="header">
             <div id="logo">
-                <a href="http://www.mb-it.com"><img src="<?php echo $this->baseUrl(); ?>/images/logo_mbit.png" alt="MB-it" /></a>
+                <a href="http://www.mb-it.com"><img src="<?php echo $this->baseUrl('/themes/mb-it/images/company_logo.png'); ?>" alt="MB-it" /></a>
             </div>
 
             <div id="mainnav">
@@ -71,29 +73,6 @@
                 <div id="content">
                     <?php echo $this->layout()->content; ?>
                 </div>
-            </div>
-
-            <div id="col2">
-                <div class="box">
-                    <h4>Kunden<span>portal</span></h4>
-                    <form action="http://portal.mb-it.com/auth/login" id="login" class="login_form" method="post">
-                        <div>
-                            <input src="<?php echo $this->baseUrl(); ?>/images/btn_login.png" type="image" class="loginbutton" />
-                            <input name="name" type="text" class="loginfield" />
-                            <input name="password" type="password" class="loginfield" />
-                        </div>
-                    </form>
-                </div>
-                <br />
-
-                <div class="box">
-                    <h4>Ansprech<span>partner</span></h4>
-                    <div class="ansprechpartner">
-                        <img src="<?php echo $this->baseUrl(); ?>/images/pic_ansprechpartner.jpg" alt="Marc Becker" />
-                        <p><b>Marc Becker</b><br />0 61 31/97 13 853<br /><a class="mailLink" href="mailto:m.becker@mb-it.com">E-Mail</a><a href="http://www.xing.com/profile/Marc_Becker" target="_blank" rel="me"><img src="http://www.xing.com/img/buttons/1_de_btn.gif" width="85" height="23" alt="XING" border="0" /></a></p>
-                    </div>
-                </div>
-
             </div>
 
         <p><br class="clearboth" /></p>
