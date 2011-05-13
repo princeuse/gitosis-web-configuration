@@ -21,43 +21,17 @@
  * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
  * @author    Marc Becker <m.becker@mb-it.com>
  * @category  MB-it
- * @package   Lib
+ * @package   Controller
  */
 
 /**
  * @category MB-it
- * @package  Lib
+ * @package  Controller
  */
-interface MBit_Model_CrudInterface
+class LicenseController extends Zend_Controller_Action
 {
-    /**
-     * getting select statement for paginator
-     *
-     * @return Zend_Db_Table_Select
-     */
-    public function getPaginatorSelect();
-
-    /**
-     * setting data
-     *
-     * @param array
-     */
-    public function setData($data);
-
-    /**
-     * getting all data in array
-     *
-     * @return array
-     */
-    public function getData();
-
-    /**
-     * storing or updating dataset
-     */
-    public function save();
-
-    /**
-     * deleting the dataset
-     */
-    public function delete();
+    public function indexAction()
+    {
+        $this->view->headTitle('Lizenz');
+    }
 }

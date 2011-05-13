@@ -60,7 +60,8 @@ abstract class MBit_Controller_Crud extends Zend_Controller_Action
         $this->_initModel();
         $select = $this->_model->getPaginatorSelect();
 
-        $paginator = Zend_Paginator::factory($select);
+        $paginator = Zend_Paginator::factory($select, 'Object', array('MBit_Paginator_Adapter_' => 'MBit/Paginator/Adapter'));
+        $paginator->getAdapter()->setObjectName($this->_model);
         $paginator->setDefaultItemCountPerPage(20);
         $paginator->setCurrentPageNumber($this->_getParam('page', 1));
 
@@ -83,21 +84,18 @@ abstract class MBit_Controller_Crud extends Zend_Controller_Action
         $this->_initForm();
         $this->_initModel();
 
-        $preData = $this->_model->getById($id);
-        $this->_form->populate($preData);
+        $this->_model->load($id);
+        $this->_form->populate($this->_model->getData());
 
         if ($this->getRequest()->isPost()
             && $this->_form->isValid($this->getRequest()->getPost())
         ) {
-            $data = $this->_form->getValidValues($this->getRequest()->getPost());
+            $this->_model->setData(
+                $this->_form->getValidValues($this->getRequest()->getPost()
+                    )
+            );
 
-            $id = null;
-            if (array_key_exists('id', $data)) {
-                $id = $data['id'];
-                unset($data['id']);
-            }
-
-            $successFlag = $this->_model->editItem($id, $data);
+            $successFlag = $this->_model->save();
             $message = "Der Datensatz konnte nicht gespeichert werden";
             if ($successFlag) {
                 $message = "Der Datensatz wurde erfolgreich gespeichert";
@@ -115,17 +113,18 @@ abstract class MBit_Controller_Crud extends Zend_Controller_Action
      */
     public function createAction ()
     {
-        $form = $this->_form;
+        $this->_initForm();
+        $this->_initModel();
 
         if ($this->getRequest()->isPost()
-            && $form->isValid($this->getRequest()->getPost())
+            && $this->_form->isValid($this->getRequest()->getPost())
         ) {
-            $data = $form->getValidValues($this->getRequest()->getPost());
-            if (array_key_exists('id', $data)) {
-                unset($data['id']);
-            }
+            $this->_model->setData(
+                $this->_form->getValidValues($this->getRequest()->getPost()
+                    )
+            );
 
-            $successFlag = $this->_model->createItem($data);
+            $successFlag = $this->_model->save();
             $message = "Der Datensatz konnte nicht erstellt werden";
             if ($successFlag) {
                 $message = "Der Datensatz wurde erfolgreich erstellt";
@@ -135,7 +134,7 @@ abstract class MBit_Controller_Crud extends Zend_Controller_Action
             $this->_redirectToList();
         }
 
-        $this->view->form     = $form;
+        $this->view->form     = $this->_form;
         $this->view->messages = $this->_helper->FlashMessenger->getMessages();
 
         $this->_helper->FlashMessenger->clearMessages();
@@ -146,10 +145,12 @@ abstract class MBit_Controller_Crud extends Zend_Controller_Action
      */
     public function deleteAction ()
     {
+        $this->_initModel();
+        
         $message = "Der Datensatz konnte nicht gelöscht werden";
         $id = $this->_getParam('id');
         if (!empty($id)) {
-            $this->_model->deleteItem($id);
+            $this->_model->delete($id);
             $message = "Der Datensatz wurde erfolgreich gelöscht";
         }
 

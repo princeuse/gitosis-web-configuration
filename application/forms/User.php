@@ -1,7 +1,6 @@
 <?php
-
 /**
- * APPLICATION
+ * MB-it Gitosis Web Configuration
  *
  * All rights reserved.
  *
@@ -22,12 +21,12 @@
  * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
  * @author    Marc Becker <m.becker@mb-it.com>
  * @category  MB-it
- * @package   MODULE
+ * @package   Forms
  */
 
 /**
  * @category MB-it
- * @package  MODULE
+ * @package  Forms
  */
 class Application_Form_User extends MBit_Form
 {

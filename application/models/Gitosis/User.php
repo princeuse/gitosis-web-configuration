@@ -91,12 +91,26 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
      *
      * @return bool
      */
-    public function save ()
+    public function save()
     {
         $saveUser = $this->_saveUser();
         $this->_saveGroups();
 
         return $saveUser;
+    }
+
+    public function delete($id = null)
+    {
+        if (!empty($id) && intval($id) > 0) {
+            $this->_id = $id;
+        }
+
+        if (empty($this->_id)) {
+            throw new InvalidArgumentException('user id has to be set or given via parameter, skipping remove');
+        }
+
+        $model = new Application_Model_Db_Gitosis_Users();
+        return $model->deleteItem($this->_id);
     }
 
     /**
@@ -319,16 +333,70 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
     public function getPaginatorSelect()
     {
         $userModel = new Application_Model_Db_Gitosis_Users();
-        return $userModel->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
+        $select = $userModel->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
+        $select->columns(
+            array(
+                new Zend_Db_Expr('gitosis_user_id as id'),
+                new Zend_Db_Expr('gitosis_user_name as name'),
+                new Zend_Db_Expr('gitosis_user_email as email'),
+                new Zend_Db_Expr('gitosis_user_ssh_key as ssh_key'),
+            )
+        );
+        return $select;
     }
 
     /**
-     * setting data from form
+     * getting all data
+     *
+     * @return array
+     */
+    public function getData()
+    {
+        return array (
+            'id'        => $this->getId(),
+            'name'      => $this->getName(),
+            'email'     => $this->getMailAdress(),
+            'ssh_key'   => $this->getSshKey()
+        );
+    }
+
+    /**
+     * setting multiple data
+     *
      * @param array $data
      */
-    public function setFormData($data)
+    public function setData($data)
     {
+        if (empty($data)) {
+            return;
+        }
 
+        foreach ($data   as $key => $value) {
+            switch($key) {
+                case 'name':
+                    $this->setName($value);
+                    break;
+
+                case 'email':
+                    $this->setMailAdress($value);
+                    break;
+
+                case 'id':
+                    $this->setId($value);
+                    break;
+
+                case 'ssh_key':
+                    $this->setSshKey($value);
+                    break;
+
+                case 'groups':
+                    if (is_array($value)) {
+                        $this->addGroups($value);
+                    } else {
+                        $this->addGroup($value);
+                    }
+            }
+        }
     }
 
     /**

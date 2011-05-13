@@ -28,36 +28,44 @@
  * @category MB-it
  * @package  Lib
  */
-interface MBit_Model_CrudInterface
+class MBit_Paginator_Adapter_Object extends Zend_Paginator_Adapter_DbTableSelect
 {
     /**
-     * getting select statement for paginator
-     *
-     * @return Zend_Db_Table_Select
+     * @var string
      */
-    public function getPaginatorSelect();
+    protected $_objectName = null;
 
-    /**
-     * setting data
-     *
-     * @param array
-     */
-    public function setData($data);
+    public function setObjectName($name)
+    {
+        if (!empty($name)) {
+            if (is_object($name)) {
+                $this->_objectName = get_class($name);
+            } else {
+                $this->_objectName = trim((string) $name);
+            }
+        }
+        return $this;
+    }
 
-    /**
-     * getting all data in array
-     *
-     * @return array
-     */
-    public function getData();
+    public function getObjectName()
+    {
+        return $this->_objectName;
+    }
 
-    /**
-     * storing or updating dataset
-     */
-    public function save();
+    public function getItems($offset, $itemCountPerPage)
+    {
+        $returnValue = array();
+        $counter = 0;
 
-    /**
-     * deleting the dataset
-     */
-    public function delete();
+        $items = parent::getItems($offset, $itemCountPerPage);
+        foreach ($items as $item) {
+            $returnValue[$counter] = new $this->_objectName;
+            $returnValue[$counter]->setData($item);
+
+            $counter++;
+        }
+        return $returnValue;
+    }
 }
+
+?>
