@@ -30,36 +30,17 @@
  * @category MB-it
  * @package  Lib
  */
-abstract class MBit_Controller_Action extends Zend_Controller_Action
+abstract class MBit_Controller_Crud extends Zend_Controller_Action
 {
     /**
-     * form decorators (paragraph)
-     *
-     * @var array
-     */
-    protected static $paragraphDecorator = array(
-        'ViewHelper',
-    	'Label',
-    	'Errors',
-    	array('Description', array('tag' => 'span')),
-    	array('HtmlTag', array('tag' => 'p'))
-    );
-
-    /**
-     * form decorators (no embrassing tag)
-     *
-     * @var array
-     */
-    protected static $clearDecorator = array(
-        'ViewHelper',
-    	'Label',
-    	'Errors'
-    );
-
-    /**
-     * @var MBit_Db_Table_Abstract
+     * @var MBit_Model_CrudInterface
      */
     protected $_model = null;
+
+    /**
+     * @var MBit_Form
+     */
+    protected $_form = null;
 
     /**
      * redirecting to list action
@@ -76,7 +57,8 @@ abstract class MBit_Controller_Action extends Zend_Controller_Action
     {
         Zend_View_Helper_PaginationControl::setDefaultViewPartial('pager.phtml');
 
-        $select = $this->_model->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
+        $this->_initModel();
+        $select = $this->_model->getPaginatorSelect();
 
         $paginator = Zend_Paginator::factory($select);
         $paginator->setDefaultItemCountPerPage(20);
@@ -97,16 +79,17 @@ abstract class MBit_Controller_Action extends Zend_Controller_Action
         if (empty($id)) {
             $this->_redirectToList();
         }
-        
-        $form = $this->_getForm();
+
+        $this->_initForm();
+        $this->_initModel();
 
         $preData = $this->_model->getById($id);
-        $form->populate($preData);
+        $this->_form->populate($preData);
 
         if ($this->getRequest()->isPost()
-            && $form->isValid($this->getRequest()->getPost())
+            && $this->_form->isValid($this->getRequest()->getPost())
         ) {
-            $data = $form->getValidValues($this->getRequest()->getPost());
+            $data = $this->_form->getValidValues($this->getRequest()->getPost());
 
             $id = null;
             if (array_key_exists('id', $data)) {
@@ -124,7 +107,7 @@ abstract class MBit_Controller_Action extends Zend_Controller_Action
             $this->_redirectToList();
         }
 
-        $this->view->form = $form;
+        $this->view->form = $this->_form;
     }
 
     /**
@@ -132,7 +115,7 @@ abstract class MBit_Controller_Action extends Zend_Controller_Action
      */
     public function createAction ()
     {
-        $form = $this->_getForm();
+        $form = $this->_form;
 
         if ($this->getRequest()->isPost()
             && $form->isValid($this->getRequest()->getPost())
@@ -183,9 +166,36 @@ abstract class MBit_Controller_Action extends Zend_Controller_Action
     }
 
     /**
+     * initialising model
+     */
+    protected function _initModel()
+    {
+        $this->_getModel();
+        if (!$this->_model instanceof MBit_Model_CrudInterface) {
+            throw new MBit_Exception('Models that are used by the MBit_Controller_Crud have to implement MBit_Model_CrudInterface');
+        }
+    }
+
+    /**
+     * initialising form
+     */
+    protected function _initForm()
+    {
+        $this->_getForm();
+        if (!$this->_form instanceof Zend_Form) {
+            throw new MBit_Exception('Forms that are used by the MBit_Controller_Crud have to extends Zend_Form');
+        }
+    }
+
+    /**
      * @return Zend_Form
      */
     abstract protected function _getForm();
+
+    /**
+     * @return MBit_Model_CrudInterface
+     */
+    abstract protected function _getModel();
 
     /**
      * Auslesen der URL zur Liste der Datensätze

@@ -28,7 +28,7 @@
  * @category MB-it
  * @package  Models
  */
-class Application_Model_Gitosis_User
+class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
 {
     /**
      * array containing group objects
@@ -309,6 +309,26 @@ class Application_Model_Gitosis_User
         }
 
         return $this;
+    }
+
+    /**
+     * return select statement for paginator
+     *
+     * @return Zend_Db_Table_Select
+     */
+    public function getPaginatorSelect()
+    {
+        $userModel = new Application_Model_Db_Gitosis_Users();
+        return $userModel->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
+    }
+
+    /**
+     * setting data from form
+     * @param array $data
+     */
+    public function setFormData($data)
+    {
+
     }
 
     /**

@@ -26,7 +26,7 @@
 ?>
 <div id="toolbar">
     <a href="<?php echo $this->url(array('controller' => 'user', 'action' => 'create'), null, true) ?>">
-        <img src="<?php echo $this->baseUrl('/images/icons/user_add.png') ?>" alt="Benutzer erstellen" title="Benutzer erstellen" />
+        <img src="<?php echo $this->theme()->getUrl('/images/icons/user_add.png') ?>" alt="Benutzer erstellen" title="Benutzer erstellen" />
         neuen Benutzer erstellen
     </a>
 </div>
@@ -66,13 +66,13 @@
                 <td><?php echo $this->escape($row->{'gitosis_user_email'}); ?></td>
                 <td class="center">
                     <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'user', 'id' => $row->{'gitosis_user_id'}), null, true); ?>">
-                        <img src="<?php echo $this->baseUrl('/images/icons/user_edit.png'); ?>" alt="Bearbeiten" title="Bearbeiten" />
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/user_edit.png'); ?>" alt="Bearbeiten" title="Bearbeiten" />
                     </a>
                     <a href="<?php echo $this->url(array('action' => 'delete', 'controller' => 'user', 'id' => $row->{'gitosis_user_id'}), null, true); ?>">
-                        <img src="<?php echo $this->baseUrl('/images/icons/user_delete.png'); ?>" alt="Löschen" title="Löschen" />
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/user_delete.png'); ?>" alt="Löschen" title="Löschen" />
                     </a>
                     <a href="<?php echo $this->url(array('action' => 'group', 'controller' => 'user', 'id' => $row->{'gitosis_user_id'}), null, true); ?>">
-                        <img src="<?php echo $this->baseUrl('/images/icons/group_go.png'); ?>" alt="Gruppen verwalten" title="Gruppen verwalten" />
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/group_go.png'); ?>" alt="Gruppen verwalten" title="Gruppen verwalten" />
                     </a>
                 </td>
             </tr>

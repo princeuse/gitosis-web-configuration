@@ -24,12 +24,28 @@
  * @package   View
  */
 ?>
-<ul>
-    <?php foreach ($this->container as $entry) :?>
-        <?php if ($entry->isActive(true)):?>
-            <li class="active"><a href="<?php echo $entry->getHref(); ?>"><span><?php echo $entry->getLabel(); ?></span></a></li>
-        <?php else: ?>
-            <li><a href="<?php echo $entry->getHref(); ?>"><span><?php echo $entry->getLabel(); ?></span></a></li>
-        <?php endif; ?>
-    <?php endforeach; ?>
-</ul>
+<?php
+$subPages = array();
+
+foreach ($this->container as $entry) {
+    if ($entry->isActive(true) && $entry->hasPages()) {
+        foreach ($entry->getPages() as $entry) {
+            if ($entry->isVisible()) {
+                $subPages[] = $entry;
+            }
+        }
+    }
+}
+?>
+
+<?php if (!empty($subPages)): ?>
+    <ul>
+        <?php foreach ($subPages as $entry): ?>
+            <?php if ($entry->isActive(true)) : ?>
+                <li class="active"><a href="<?php echo $entry->getHref(); ?>"><span><?php echo $entry->getLabel(); ?></span></a></li>
+            <?php else: ?>
+                <li><a href="<?php echo $entry->getHref(); ?>"><span><?php echo $entry->getLabel(); ?></span></a></li>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </ul>
+<?php endif; ?>

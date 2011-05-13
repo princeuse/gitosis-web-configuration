@@ -21,15 +21,14 @@
  * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
  * @author    Marc Becker <m.becker@mb-it.com>
  * @category  MB-it
- * @package   View
+ * @package   Models
  */
-?>
-<ul>
-    <?php foreach ($this->container as $entry) :?>
-        <?php if ($entry->isActive(true)):?>
-            <li class="active"><a href="<?php echo $entry->getHref(); ?>"><span><?php echo $entry->getLabel(); ?></span></a></li>
-        <?php else: ?>
-            <li><a href="<?php echo $entry->getHref(); ?>"><span><?php echo $entry->getLabel(); ?></span></a></li>
-        <?php endif; ?>
-    <?php endforeach; ?>
-</ul>
+
+/**
+ * @category MB-it
+ * @package  Models
+ */
+class Application_Model_Gitosis_Repository
+{
+    //put your code here
+}

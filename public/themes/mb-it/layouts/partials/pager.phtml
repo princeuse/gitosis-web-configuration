@@ -30,34 +30,34 @@
 
         <?php if (isset($this->previous)): ?>
             <a href="<?php echo $this->url(array('page' => $this->first)); ?>">
-              <img src="<?php echo $this->baseUrl('images/icons/go-first.png'); ?>" alt="zur ersten Seite" title="zur ersten Seite" />
+              <img src="<?php echo $this->theme()->getUrl('/images/icons/go-first.png'); ?>" alt="zur ersten Seite" title="zur ersten Seite" />
             </a>
         <?php else: ?>
-            <img src="<?php echo $this->baseUrl('images/icons/go-first-disabled.png'); ?>" alt="zur ersten Seite" title="zur ersten Seite" />
+            <img src="<?php echo $this->theme()->getUrl('/images/icons/go-first-disabled.png'); ?>" alt="zur ersten Seite" title="zur ersten Seite" />
         <?php endif; ?>
 
         <?php if (isset($this->previous)): ?>
             <a href="<?php echo $this->url(array('page' => $this->previous)); ?>">
-                <img src="<?php echo $this->baseUrl('images/icons/go-previous.png'); ?>" alt="zur vorherigen Seite" title="zur vorherigen Seite" />
+                <img src="<?php echo $this->theme()->getUrl('/images/icons/go-previous.png'); ?>" alt="zur vorherigen Seite" title="zur vorherigen Seite" />
             </a>
         <?php else: ?>
-            <img src="<?php echo $this->baseUrl('images/icons/go-previous-disabled.png'); ?>" alt="zur vorherigen Seite" title="zur vorherigen Seite" />
+            <img src="<?php echo $this->theme()->getUrl('/images/icons/go-previous-disabled.png'); ?>" alt="zur vorherigen Seite" title="zur vorherigen Seite" />
         <?php endif; ?>
 
         <?php if (isset($this->next)): ?>
           <a href="<?php echo $this->url(array('page' => $this->next)); ?>">
-            <img src="<?php echo $this->baseUrl('images/icons/go-next.png'); ?>" alt="zur n&auml;chsten Seite" title="zur n&auml;chsten Seite" />
+            <img src="<?php echo $this->theme()->getUrl('/images/icons/go-next.png'); ?>" alt="zur n&auml;chsten Seite" title="zur n&auml;chsten Seite" />
           </a>
         <?php else: ?>
-          <img src="<?php echo $this->baseUrl('images/icons/go-next-disabled.png'); ?>" alt="zur n&auml;chsten Seite" title="zur n&auml;chsten Seite" />
+          <img src="<?php echo $this->theme()->getUrl('/images/icons/go-next-disabled.png'); ?>" alt="zur n&auml;chsten Seite" title="zur n&auml;chsten Seite" />
         <?php endif; ?>
 
         <?php if (isset($this->next)): ?>
           <a href="<?php echo $this->url(array('page' => $this->last)); ?>">
-            <img src="<?php echo $this->baseUrl('images/icons/go-last.png'); ?>" alt="zur letzten Seite" title="zur letzten Seite" />
+            <img src="<?php echo $this->theme()->getUrl('/images/icons/go-last.png'); ?>" alt="zur letzten Seite" title="zur letzten Seite" />
           </a>
         <?php else: ?>
-          <img src="<?php echo $this->baseUrl('images/icons/go-last-disabled.png'); ?>" alt="zur letzten Seite" title="zur letzten Seite" />
+          <img src="<?php echo $this->theme()->getUrl('/images/icons/go-last-disabled.png'); ?>" alt="zur letzten Seite" title="zur letzten Seite" />
         <?php endif; ?>
 
     </div>

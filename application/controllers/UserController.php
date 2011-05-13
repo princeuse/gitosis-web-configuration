@@ -28,7 +28,7 @@
  * @category MB-it
  * @package  Controller
  */
-class UserController extends MBit_Controller_Action
+class UserController extends MBit_Controller_Crud
 {
     /**
      * initialising controller
@@ -37,8 +37,6 @@ class UserController extends MBit_Controller_Action
      */
     public function init()
     {
-        $this->_model = new Application_Model_Db_Gitosis_Users();
-
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
         $contextSwitch->addActionContext('ajax', 'json')
                       ->initContext();
@@ -119,131 +117,23 @@ class UserController extends MBit_Controller_Action
      */
     protected function _getForm()
     {
-        $form = new Zend_Form();
-        $form->setAttrib('accept-charset', 'UTF-8')
-             ->setDecorators(array('FormElements', 'Form'));
-
-        $paramId = intval($this->_getParam('id'));
-        if ($paramId > 0) {
-            $id = new Zend_Form_Element_Hidden('id');
-            $id->setDecorators(self::$clearDecorator)
-               ->setValue($paramId);
-
-            $form->addElement($id);
+        if (empty($this->_form)) {
+            $this->_form = new Application_Form_User();
         }
+        return $this->_form;
+    }
 
-        $name = new Zend_Form_Element_Text('gitosis_user_name');
-        $name->setDecorators(self::$paragraphDecorator)
-             ->setFilters(array('StripTags', 'StringTrim'))
-             ->setLabel('Name:')
-             ->setAllowEmpty(false)
-             ->setRequired(true)
-             ->addValidator(
-                 'NotEmpty',
-                 true,
-                 array(
-                    'messages' => array (
-                        Zend_Validate_NotEmpty::IS_EMPTY => 'Es muss ein Benutzername angegeben werden'
-                    )
-                )
-             )
-             ->addValidator(
-                 'Alnum',
-                 true,
-                 array(
-                    true,
-                    'messages' => array (
-                        Zend_Validate_Alnum::NOT_ALNUM => 'Der Name darf nur alphabetische Zeichen und Ziffern enthalten'
-                    )
-                )
-             )
-             ->addValidator(
-                 'StringLength',
-                 true,
-                 array(
-                    5,
-                    200,
-                    'messages' => array (
-                        Zend_Validate_StringLength::TOO_LONG  => 'Der Name darf maximal 200 Zeichen lang sein',
-                        Zend_Validate_StringLength::TOO_SHORT => 'Der Name muss mindestens 5 Zeichen lang sein',
-                    )
-                )
-             );
-        $form->addElement($name);
-
-        $email = new Zend_Form_Element_Text('gitosis_user_email');
-        $email->setDecorators(self::$paragraphDecorator)
-              ->setFilters(array('StripTags', 'StringTrim'))
-              ->setLabel('E-Mail:')
-              ->setAllowEmpty(false)
-              ->setRequired(true)
-              ->addValidator(
-                  'NotEmpty',
-                  true,
-                  array(
-                     'messages' => array (
-                         Zend_Validate_NotEmpty::IS_EMPTY => 'Es muss eine E-Mailadresse angegeben werden'
-                     )
-                 )
-              )
-              ->addValidator(
-                  'StringLength',
-                  true,
-                  array(
-                     10,
-                     200,
-                     'messages' => array (
-                         Zend_Validate_StringLength::TOO_LONG  => 'Die E-Mailadresse darf maximal 200 Zeichen lang sein',
-                         Zend_Validate_StringLength::TOO_SHORT => 'Die E-Mailadresse muss mindestens 10 Zeichen lang sein',
-                     )
-                 )
-              )
-              ->addValidator(
-                  'EmailAddress',
-                  true,
-                  array(
-                     'messages' => array (
-                         Zend_Validate_EmailAddress::INVALID_FORMAT =>
-                            'Die E-Mailadresse besitzt ein ungültiges Format',
-                         Zend_Validate_EmailAddress::INVALID_HOSTNAME =>
-                            'Die E-Mailadresse enthält einen ungültigen Domainanteil',
-                         Zend_Validate_EmailAddress::INVALID_LOCAL_PART =>
-                            'Die E-Mailadresse enthält einen ungültigen, lokalen Anteil',
-                     )
-                 )
-              );
-        $form->addElement($email);
-
-        $sshKey = new Zend_Form_Element_Textarea('gitosis_user_ssh_key');
-        $sshKey->setDecorators(self::$paragraphDecorator)
-               ->setFilters(array('StripTags', 'StringTrim'))
-               ->setLabel('SSH-Schlüssel:')
-               ->setAttrib('cols', 100)
-               ->setAttrib('rows', 10)
-               ->setAllowEmpty(false)
-               ->setRequired(true)
-               ->addValidator(
-                  'NotEmpty',
-                  true,
-                  array(
-                     'messages' => array (
-                         Zend_Validate_NotEmpty::IS_EMPTY => 'Es muss eine SSH-Schlüssel angegeben werden'
-                     )
-                 )
-              );
-        $form->addElement($sshKey);
-
-        $submit = new Zend_Form_Element_Submit('submit');
-        $submit->setDecorators(self::$clearDecorator)
-               ->setLabel('Speichern');
-        $form->addElement($submit);
-
-        $reset = new Zend_Form_Element_Reset('reset');
-        $reset->setDecorators(self::$clearDecorator)
-              ->setLabel('zurück setzen');
-        $form->addElement($reset);
-
-        return $form;
+    /**
+     * user model
+     *
+     * @return Application_Model_Gitosis_User
+     */
+    protected function _getModel()
+    {
+        if (empty($this->_model)) {
+            $this->_model = new Application_Model_Gitosis_User();
+        }
+        return $this->_model;
     }
 
     /**

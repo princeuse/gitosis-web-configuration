@@ -46,33 +46,24 @@
     <div id="page">
         <div id="header">
             <div id="logo">
-                <a href="http://www.mb-it.com"><img src="<?php echo $this->baseUrl('/themes/mb-it/images/company_logo.png'); ?>" alt="MB-it" /></a>
+                <a href="http://www.mb-it.com"><img src="<?php echo $this->baseUrl('/themes/mb-it/images/logo.png'); ?>" alt="MB-it" width="200" /></a>
             </div>
 
             <div id="mainnav">
-                <?php echo $this->navigation()->menu(); ?>
+                <?php echo $this->navigation()->menu()
+                                              ->setPartial('navi.phtml'); ?>
             </div>
 
             <div id="subnav">
-                <?php // echo $this->navi()->getSubNavi(); ?>
+                <?php echo $this->navigation()->menu()
+                                              ->setPartial('subnavi.phtml'); ?>
             </div>
-        </div>
-
-        <div id="subline">
-                <ul>
-                    <li class="greenbox"><a href="<?php echo $this->url(); ?>"><h2>MB-it</h2><p>Kompetenzen für<br />Ihren Erfolg</p></a></li>
-                    <li class="whitebox"><a href="<?php echo $this->url(); ?>"><h2><span>Web</span>entwicklung</h2><p>Individuallösungen, Dynamische Webinhalte, Shopsysteme und mehr&hellip;</p></a></li>
-                    <li class="whitebox"><a href="<?php echo $this->url(); ?>"><h2><span>Server</span> Support</h2><p>Administration, Konfiguration, und Netzwerkbetreuung für Linux und Windows</p></a></li>
-                    <li class="whitebox"><a href="<?php echo $this->url(); ?>"><h2><span>Web</span> Hosting</h2><p>Kompetenter Hosting Partner zu fairen Preisen, schnelle Anbindung, tägliche Backups</p></a></li>
-                </ul>
         </div>
 
         <div id="main">
 
-            <div id="col1">
-                <div id="content">
-                    <?php echo $this->layout()->content; ?>
-                </div>
+            <div id="content">
+                <?php echo $this->layout()->content; ?>
             </div>
 
         <p><br class="clearboth" /></p>

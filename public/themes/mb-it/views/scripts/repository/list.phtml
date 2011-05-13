@@ -26,7 +26,7 @@
 ?>
 <div id="toolbar">
     <a href="<?php echo $this->url(array('controller' => 'repository', 'action' => 'create'), null, true) ?>">
-        <img src="<?php echo $this->baseUrl('/images/icons/repo_add.png') ?>" alt="Repository erstellen" title="Repository erstellen" />
+        <img src="<?php echo $this->theme()->getUrl('/images/icons/repo_add.png') ?>" alt="Repository erstellen" title="Repository erstellen" />
         neues Repository erstellen
     </a>
 </div>
@@ -74,13 +74,13 @@
                 </td>
                 <td class="center">
                     <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'repository', 'id' => $row->{'gitosis_repository_id'}), null, true); ?>">
-                        <img src="<?php echo $this->baseUrl('/images/icons/repo_edit.png'); ?>" alt="Bearbeiten" title="Bearbeiten" />
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/repo_edit.png'); ?>" alt="Bearbeiten" title="Bearbeiten" />
                     </a>
                     <a href="<?php echo $this->url(array('action' => 'delete', 'controller' => 'repository', 'id' => $row->{'gitosis_repository_id'}), null, true); ?>">
-                        <img src="<?php echo $this->baseUrl('/images/icons/repo_delete.png'); ?>" alt="Löschen" title="Löschen" />
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/repo_delete.png'); ?>" alt="Löschen" title="Löschen" />
                     </a>
                     <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'permission', 'id' => $row->{'gitosis_repository_id'}), null, true); ?>">
-                        <img src="<?php echo $this->baseUrl('/images/icons/rights.png'); ?>" alt="Berechtigungen" title="Berechtigungen" />
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/rights.png'); ?>" alt="Berechtigungen" title="Berechtigungen" />
                     </a>
                 </td>
             </tr>

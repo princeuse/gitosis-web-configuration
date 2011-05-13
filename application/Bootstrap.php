@@ -45,13 +45,11 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
     protected function _initView()
     {
         $this->bootstrap('autoload');
-        $themeModel = MBit_Theme::getInstance($this->getOption('gitosis_theme'));
-        try  {
-            $themeModel->setTheme($this->getOption('gitosis_theme'));
-        } catch (MBit_Theme_Exception $e) {
+        $themeModel = MBit_Theme::getInstance();
+        if (!$themeModel->setTheme($this->getOption('gitosis_theme'))) {
             $themeModel->setTheme('mb-it');
         }
-        
+
         $layout = Zend_Layout::startMvc()
             ->setLayout('layout')
             ->setLayoutPath($themeModel->getLayoutPath())
@@ -63,6 +61,17 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         $view->setBasePath($themeModel->getViewPath());
         $view->setScriptPath($themeModel->getViewScriptPath());
         $view->addScriptPath($themeModel->getPartialPath());
+
+        $view->addHelperPath(
+            realpath(
+                    APPLICATION_PATH . DIRECTORY_SEPARATOR .
+                    '..'             . DIRECTORY_SEPARATOR .
+                    'library'        . DIRECTORY_SEPARATOR .
+                    'MBit'           . DIRECTORY_SEPARATOR .
+                    'View'           . DIRECTORY_SEPARATOR .
+                    'Helper'),
+            'MBit_View_Helper_'
+        );
 
         $viewRenderer = Zend_Controller_Action_HelperBroker::getStaticHelper('ViewRenderer');
         $viewRenderer->setView($view);

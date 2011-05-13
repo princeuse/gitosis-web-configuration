@@ -73,10 +73,10 @@ class MBit_Theme
      * @param string $theme
      * @return MBit_Theme
      */
-    static public function getInstance($theme)
+    static public function getInstance()
     {
         if (self::$_instance === null) {
-            self::$_instance = new self($theme);
+            self::$_instance = new self();
         }
         return self::$_instance;
     }
@@ -87,17 +87,26 @@ class MBit_Theme
      * Setting given theme and resetting paths.
      *
      * @param string $theme
-     * @return MBit_Theme
+     * @return bool
      */
     public function setTheme($theme)
     {
-        if (!$this->_themeExists($theme)) {
-            throw new MBit_Theme_Exception('given theme doesn\'t exists');
+        if ($this->_themeExists($theme)) {
+            $this->_theme = (string) $theme;
+            $this->_resetPaths();
+            return true;
         }
-        $this->_theme = (string) $theme;
-        $this->_resetPaths();
+        return false;
+    }
 
-        return $this;
+    /**
+     * getting theme
+     *
+     * @return string
+     */
+    public function getTheme()
+    {
+        return $this->_theme;
     }
 
     /**
@@ -167,10 +176,8 @@ class MBit_Theme
      *
      * @param string $theme
      */
-    private function __construct($theme)
-    {
-        $this->setTheme($theme);
-    }
+    private function __construct()
+    { }
 
     private function __clone()
     { }

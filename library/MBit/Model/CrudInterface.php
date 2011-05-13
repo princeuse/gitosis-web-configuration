@@ -21,15 +21,26 @@
  * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
  * @author    Marc Becker <m.becker@mb-it.com>
  * @category  MB-it
- * @package   View
+ * @package   Lib
  */
-?>
-<ul>
-    <?php foreach ($this->container as $entry) :?>
-        <?php if ($entry->isActive(true)):?>
-            <li class="active"><a href="<?php echo $entry->getHref(); ?>"><span><?php echo $entry->getLabel(); ?></span></a></li>
-        <?php else: ?>
-            <li><a href="<?php echo $entry->getHref(); ?>"><span><?php echo $entry->getLabel(); ?></span></a></li>
-        <?php endif; ?>
-    <?php endforeach; ?>
-</ul>
+
+/**
+ * @category MB-it
+ * @package  Lib
+ */
+interface MBit_Model_CrudInterface
+{
+    /**
+     * getting select statement for paginator
+     *
+     * @return Zend_Db_Table_Select
+     */
+    public function getPaginatorSelect();
+
+    /**
+     * setting posted form data
+     *
+     * @param array
+     */
+    public function setFormData($data);
+}
