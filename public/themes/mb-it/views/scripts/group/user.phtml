@@ -102,19 +102,19 @@ jQuery('document').ready(function (){
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($this->pager as $row): ?>
+            <?php foreach ($this->pager as $user): ?>
             <tr style="background-color:<?php echo $this->cycle(array("#FFFFFF",
                                                                       "#F0F0F0"))
                                                         ->next(); ?>">
-                <td><?php echo $this->escape($row->{'gitosis_user_name'}); ?></td>
-                <td><?php echo $this->escape($row->{'gitosis_user_email'}); ?></td>
+                <td><?php echo $this->escape($user->getName()); ?></td>
+                <td><?php echo $this->escape($user->getMailAdress()); ?></td>
                 <td class="center">
-                    <?php if ($this->user()->isInGroup($this->groupId, $row->{'gitosis_user_id'})): ?>
+                    <?php if ($this->user()->isInGroup($this->groupId, $user->getId())): ?>
                         <?php $attribs['checked'] = true; ?>
                     <?php else: ?>
                         <?php $attribs = null; ?>
                     <?php endif; ?>
-                    <?php echo $this->formCheckbox('gitosis_user_id_' . $row->{'gitosis_user_id'}, null, $attribs); ?>
+                    <?php echo $this->formCheckbox('gitosis_user_id_' . $user->getId(), null, $attribs); ?>
                 </td>
             </tr>
             <?php endforeach; ?>

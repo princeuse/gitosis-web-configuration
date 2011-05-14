@@ -26,7 +26,7 @@
 ?>
 <div id="toolbar">
     <a href="<?php echo $this->url(array('controller' => 'group', 'action' => 'create'), null, true) ?>">
-        <img src="<?php echo $this->baseUrl('/images/icons/group_add.png') ?>" alt="Gruppe erstellen" title="Gruppe erstellen" />
+        <img src="<?php echo $this->theme()->getUrl('/images/icons/group_add.png') ?>" alt="Gruppe erstellen" title="Gruppe erstellen" />
         neue Gruppe erstellen
     </a>
 </div>
@@ -57,22 +57,22 @@
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($this->pager as $row): ?>
+            <?php foreach ($this->pager as $group): ?>
             <tr style="background-color:<?php echo $this->cycle(array("#FFFFFF",
                                                                       "#F0F0F0"))
                                                         ->next(); ?>">
-                <td><?php echo $this->escape($row->{'gitosis_group_name'}); ?></td>
+                <td><?php echo $this->escape($group->getName()); ?></td>
                 <td class="center">
-                    <?php if ($row->{'gitosis_group_name'} !== 'gitosis-admin') :?>
-                        <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'group', 'id' => $row->{'gitosis_group_id'}), null, true); ?>">
-                            <img src="<?php echo $this->baseUrl('/images/icons/group_edit.png'); ?>" alt="Bearbeiten" title="Bearbeiten" />
+                    <?php if ($group->getName() !== 'gitosis-admin') :?>
+                        <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'group', 'id' => $group->getId()), null, true); ?>">
+                            <img src="<?php echo $this->theme()->getUrl('/images/icons/group_edit.png'); ?>" alt="Bearbeiten" title="Bearbeiten" />
                         </a>
-                        <a href="<?php echo $this->url(array('action' => 'delete', 'controller' => 'group', 'id' => $row->{'gitosis_group_id'}), null, true); ?>">
-                            <img src="<?php echo $this->baseUrl('/images/icons/group_delete.png'); ?>" alt="Löschen" title="Löschen" />
+                        <a href="<?php echo $this->url(array('action' => 'delete', 'controller' => 'group', 'id' => $group->getId()), null, true); ?>">
+                            <img src="<?php echo $this->theme()->getUrl('/images/icons/group_delete.png'); ?>" alt="Löschen" title="Löschen" />
                         </a>
                     <? endif; ?>
-                    <a href="<?php echo $this->url(array('action' => 'add', 'controller' => 'group', 'id' => $row->{'gitosis_group_id'}), null, true); ?>">
-                        <img src="<?php echo $this->baseUrl('/images/icons/user_groups.png'); ?>" alt="Benutzer verwalten" title="Benutzer verwalten" />
+                    <a href="<?php echo $this->url(array('action' => 'user', 'controller' => 'group', 'id' => $group->getId()), null, true); ?>">
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/user_groups.png'); ?>" alt="Benutzer verwalten" title="Benutzer verwalten" />
                     </a>
                 </td>
             </tr>

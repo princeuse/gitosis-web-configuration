@@ -46,7 +46,7 @@ class MBit_View_Helper_User extends Zend_View_Helper_Abstract
      * @param int $id
      * @return string
      */
-    public function getById($id)
+    public function getName($id)
     {
         $model = new Application_Model_Db_Gitosis_Users();
         $userRow = $model->getById($id);

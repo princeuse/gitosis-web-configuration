@@ -30,10 +30,9 @@
  */
 class UserController extends MBit_Controller_Crud
 {
+
     /**
-     * initialising controller
-     *
-     * setting the model and initialise json-action
+     * initialise json action(s)
      */
     public function init()
     {
@@ -44,8 +43,10 @@ class UserController extends MBit_Controller_Crud
 
     /**
      * listing all groups
+     *
+     * if no user id is given, this action redirects back to list
      */
-    public function groupAction ()
+    public function groupAction()
     {
         $id = $this->_getParam('id');
         if (empty($id)) {
@@ -55,28 +56,32 @@ class UserController extends MBit_Controller_Crud
         $user = new Application_Model_Gitosis_User();
         $user->load($id);
 
-        $model  = new Application_Model_Db_Gitosis_Groups();
-        $select = $model->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
+        $group = new Application_Model_Gitosis_Group();
 
         Zend_View_Helper_PaginationControl::setDefaultViewPartial('pager.phtml');
-        $paginator = Zend_Paginator::factory($select);
+        $paginator = Zend_Paginator::factory(
+                        $group->getPaginatorSelect(), 'Object', array('MBit_Paginator_Adapter_' => 'MBit/Paginator/Adapter')
+        );
+        $paginator->getAdapter()->setObjectName('Application_Model_Gitosis_Group');
         $paginator->setDefaultItemCountPerPage(20);
         $paginator->setCurrentPageNumber($this->_getParam('page', 1));
 
-        $this->view->pager   = $paginator;
-        $this->view->user    = $user->getName();
-        $this->view->userId  = $user->getId();
+        $this->view->pager = $paginator;
+        $this->view->user = $user->getName();
+        $this->view->userId = $user->getId();
     }
 
     /**
-     * adding/removing groups
+     * adding/removing groups of a user
+     *
+     * call of this action is only allowed by ajax requests, all other requests
+     * are redirected to group listing
      */
-    public function ajaxAction ()
+    public function ajaxAction()
     {
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
-        if ($contextSwitch->getCurrentContext() !== 'json')
-        {
-            $this->getHelper('Redirector')->gotoSimple('add');
+        if ($contextSwitch->getCurrentContext() !== 'json') {
+            $this->getHelper('Redirector')->gotoSimple('group');
         }
 
         $action  = $this->_getParam('operation');
@@ -89,8 +94,7 @@ class UserController extends MBit_Controller_Crud
 
         if (!$user->getId()) {
             $message = 'Der Benutzer existiert nicht';
-        } elseif (!empty($action) &&
-                  ($action == 'add') || $action == 'remove') {
+        } elseif (!empty($action) && ($action == 'add' || $action == 'remove')) {
 
             if ($action == 'add') {
                 $user->addGroup($groupId);
@@ -103,7 +107,6 @@ class UserController extends MBit_Controller_Crud
             } else {
                 $message = "Es trat ein Fehler beim Ändern des Datensatzes auf";
             }
-
         } else {
             $message = 'Es wurde eine nicht bekannte Aktion "' . $action . '" verwendet';
         }
@@ -144,7 +147,7 @@ class UserController extends MBit_Controller_Crud
     protected function _getListUrl()
     {
         return $this->view->url(
-            array (
+            array(
                 'action'     => 'list',
                 'controller' => 'user'
             ),
@@ -152,4 +155,5 @@ class UserController extends MBit_Controller_Crud
             true
         );
     }
+
 }

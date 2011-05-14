@@ -146,7 +146,7 @@ abstract class MBit_Controller_Crud extends Zend_Controller_Action
     public function deleteAction ()
     {
         $this->_initModel();
-        
+
         $message = "Der Datensatz konnte nicht gelöscht werden";
         $id = $this->_getParam('id');
         if (!empty($id)) {

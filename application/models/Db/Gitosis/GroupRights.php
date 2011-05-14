@@ -85,4 +85,86 @@ class Application_Model_Db_Gitosis_GroupRights extends MBit_Db_Table_Abstract
         }
         return false;
     }
+
+    /**
+     * getting all repositories for a group
+     *
+     * @param int $groupId
+     * @return array
+     */
+    public function getRepositories($groupId)
+    {
+        $rows = $this->fetchAll(array('gitosis_group_id = ?' => $groupId));
+        if ($rows->count() <= 0) {
+            return null;
+        }
+        return $rows->toArray();
+    }
+
+    /**
+     * getting all groups for a repository
+     *
+     * @param int $repoId
+     * @return array
+     */
+    public function getGroups($repoId)
+    {
+        $rows = $this->fetchAll(array('gitosis_repository_id = ?' => $repoId));
+        if ($rows->count() <= 0) {
+            return null;
+        }
+        return $rows->toArray();
+    }
+
+    /**
+     * removing relation between repository and group
+     *
+     * @param int $repoId
+     * @param int $groupId
+     * @return bool
+     */
+    public function deleteRepoGroupRelation($repoId, $groupId)
+    {
+        $flag = $this->delete(
+            array(
+                'gitois_group_id = ?'       => $groupId,
+                'gitois_repository_id = ?'  => $repoId
+            )
+        );
+
+        return (bool) $flag;
+    }
+
+    /**
+     * adding relation between repository and group
+     *
+     * @param int $repoId
+     * @param int $groupId
+     * @param bool $isWriteable
+     * @return bool
+     */
+    public function addRepoGroupRelation($repoId, $groupId, $isWriteable)
+    {
+
+        $isWriteable = ($isWriteable ? 1 : 0);
+
+        $select = $this->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
+        $select->where(
+            array(
+                'gitois_group_id = ?'       => $groupId,
+                'gitois_repository_id = ?'  => $repoId
+            )
+        );
+
+        $row = $this->fetchRow($select);
+        if (empty($row)) {
+            $row = $this->createRow();
+        }
+
+        $row->{'gitosis_repository_id'} = $repoId;
+        $row->{'gitosis_group_id'} = $groupId;
+        $row->{'is_writeable'} = $isWriteable;
+
+        return (bool) $row->save();
+    }
 }

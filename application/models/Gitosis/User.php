@@ -31,8 +31,7 @@
 class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
 {
     /**
-     * array containing group objects
-     * {@see Application_Model_Gitosis_Group}
+     * array containing group ids
      *
      * @var array
      */
@@ -83,6 +82,8 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
         }
 
         $this->_loadUser();
+        $this->_loadGroups();
+
         return $this;
     }
 
@@ -99,6 +100,12 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
         return $saveUser;
     }
 
+    /**
+     * deleting a user
+     * 
+     * @param int $id
+     * @return bool
+     */
     public function delete($id = null)
     {
         if (!empty($id) && intval($id) > 0) {
@@ -160,11 +167,13 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
      */
     public function getGroup($groupId)
     {
-        if (!is_array($this->_groups) ||
-            !array_key_exists($groupId, $this->_groups)) {
+        if (!is_array($this->_groups) || !in_array($groupId, $this->_groups)) {
                 return null;
         }
-        return $this->_groups[$groupId];
+        $model = new Application_Model_Gitosis_Group();
+        $model->load($groupId);
+
+        return $model;
     }
 
     /**
@@ -174,7 +183,17 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
      */
     public function getGroups()
     {
-        return $this->_groups;
+        if (!is_array($this->_groups)) {
+                return null;
+        }
+
+        $returnValue = null;
+        $counter = 0;
+        foreach ($this->_groups as $groupId) {
+            $returnValue[$counter] = $this->getGroup($groupId);
+            $counter++;
+        }
+        return $returnValue;
     }
 
     /**
@@ -236,24 +255,27 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
     /**
      * adding user to group
      *
-     * @param int $groupId
+     * @param int|Application_Model_Gitosis_Group $group
      * @return Application_Model_Gitosis_User
      * @throws InvalidArgumentException
      */
-    public function addGroup ($groupId)
+    public function addGroup ($group)
     {
-        $groupId = intval($groupId);
+        if ($group instanceof Application_Model_Gitosis_Group) {
+            $groupId = $group->getId();
+        } elseif (intval($group) > 0) {
+            $groupId = intval($group);
+        } else {
+            $groupId = -1;
+        }
+
         if ($groupId <= 0) {
             throw new InvalidArgumentException('no group id given');
         }
 
-        if (!array_key_exists($groupId, $this->_groups)) {
-            $groupModel = new Application_Model_Gitosis_Group();
-            $groupModel->load($groupId);
-
-            if ($groupModel->getId()) {
-                $this->_groups[$groupId] = $groupModel;
-            }
+        if (!is_array($this->_groups) || !in_array($groupId, $this->_groups)) {
+                $this->_groups[] = $groupId;
+                sort($this->_groups);
         }
         return $this;
     }
@@ -261,18 +283,20 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
     /**
      * adding user to multiple groups
      *
+     * the array can contain group ids or group objects
+     *
      * @param array $groupIds
      * @return Application_Model_Gitosis_User
      */
-    public function addGroups($groupIds)
+    public function addGroups($groups)
     {
-        if (!is_array($groupIds)) {
-            $groupIds = array($groupIds);
+        if (!is_array($groups)) {
+            $groups = array($groups);
         }
 
-        foreach ($groupIds as $groupId) {
+        foreach ($groups as $group) {
             try {
-                $this->addGroup($groupId);
+                $this->addGroup($group);
             } catch (InvalidArgumentException $e) {
                 continue;
             }
@@ -284,19 +308,30 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
     /**
      * removing user from a group
      *
-     * @param int $groupId
+     * @param int|Application_Model_Gitosis_Group $group
      * @return Application_Model_Gitosis_User
      * @throws InvalidArgumentException
      */
-    public function removeGroup ($groupId)
+    public function removeGroup ($group)
     {
-        $groupId = intval($groupId);
+        if ($group instanceof Application_Model_Gitosis_Group) {
+            $groupId = $group->getId();
+        } elseif (intval($group) > 0) {
+            $groupId = intval($group);
+        } else {
+            $groupId = -1;
+        }
+
         if ($groupId <= 0) {
             throw new InvalidArgumentException('no group id given');
         }
 
-        if (array_key_exists($groupId, $this->_groups)) {
-            unset ($this->_groups[$groupId]);
+        if (is_array($this->_groups) && in_array($groupId, $this->_groups)) {
+            foreach ($this->_groups as $key => $value) {
+                if ($groupId == $value) {
+                    unset ($this->_groups[$key]);
+                }
+            }
         }
 
         return $this;
@@ -305,18 +340,20 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
     /**
      * removing user from groups
      *
-     * @param array $groupIds
+     * the array can contain Application_Model_Gitosis_Group or group ids
+     *
+     * @param array $groups
      * @return Application_Model_Gitosis_User
      */
-    public function removeGroups ($groupIsd)
+    public function removeGroups ($groups)
     {
-        if (!is_array($groupIds)) {
-            $groupIds = array($groupIds);
+        if (!is_array($groups)) {
+            $groups = array($groups);
         }
 
-        foreach ($groupIds as $groupId) {
+        foreach ($groups as $group) {
             try {
-                $this->removeGroup($groupId);
+                $this->removeGroup($group);
             } catch (InvalidArgumentException $e) {
                 continue;
             }
@@ -439,12 +476,6 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
                         break;
                 }
             }
-
-            try {
-                $this->_loadGroups();
-            } catch (UnexpectedValueException $e) {
-                Zend_Registry::get('Zend_Log')->error('error while loading user groups: ' . $e->getMessage());
-            }
         } else {
             $this->_id = null;
         }
@@ -457,26 +488,12 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
      */
     protected function _loadGroups()
     {
-        if (empty($this->_groups)) {
-            $userId = $this->getId();
-
-            if (empty($userId)) {
-                throw new UnexpectedValueException('no user id given');
-            }
-
-            $groups = $this->_getGroupIds($userId);
-            if (empty($groups)) {
-                $this->_groups = null;
-            } else {
-                foreach ($groups as $groupId) {
-                    $this->_groups[$groupId] = new Application_Model_Gitosis_Group();
-                    $this->_groups[$groupId]->load($groupId);
-                    if (!$this->_groups[$groupId]->getId()) {
-                        unset($this->_groups[$groupId]);
-                    }
-                }
-            }
+        $userId = $this->getId();
+        if (empty($userId)) {
+            throw new UnexpectedValueException('no user id given');
         }
+
+        $this->_groups = $this->_getGroupIds($userId);
     }
 
     /**
@@ -502,7 +519,7 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
             } else {
                 return false;
             }
-        } else {
+        } elseif (is_array($this->_originData)) {
             foreach ($this->_originData as $fieldName => $fieldValue) {
                 if (array_key_exists($fieldName, $dbData) && $dbData[$fieldName] == $fieldValue) {
                     unset($dbData[$fieldName]);
@@ -533,17 +550,22 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
      */
     protected function _saveGroups()
     {
-        if (empty($this->_id)) {
+        $userId = $this->_id;
+        if (empty($userId)) {
             throw new InvalidArgumentException('no user id set');
         }
 
         if (!empty($this->_groups)) {
-            $groupIds = array_keys($this->_groups);
-            sort($groupIds);
+            $groupIds = $this->_groups;
         } else {
             $groupIds = array();
         }
-        $currentGroups = $this->_getGroupIds($this->_id);
+        sort($groupIds);
+
+        $currentGroups = $this->_getGroupIds($userId);
+        if (empty($currentGroups)) {
+            $currentGroups = array();
+        }
         sort($currentGroups);
 
         $addedGroups    = array_diff($groupIds, $currentGroups);
@@ -552,13 +574,13 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
         $groupModel = new Application_Model_Db_Gitosis_UsersGroups();
         if (!empty($addedGroups)) {
             foreach ($addedGroups as $groupId) {
-                $groupModel->addUserToGroup($groupId, $this->_id);
+                $groupModel->addUserToGroup($groupId, $userId);
             }
         }
 
         if (!empty($removedGroups)) {
             foreach ($removedGroups as $groupId) {
-                $groupModel->removeUserFromGroup($groupId, $this->_id);
+                $groupModel->removeUserFromGroup($groupId, $userId);
             }
         }
     }

@@ -133,4 +133,23 @@ class Application_Model_Db_Gitosis_UsersGroups extends MBit_Db_Table_Abstract
         }
         return null;
     }
+
+    /**
+     * getting users of a group
+     *
+     * @param int $groupId
+     * @return array
+     */
+    public function getGroupUsers($groupId)
+    {
+        $select = $this->select(self::SELECT_WITHOUT_FROM_PART);
+        $select->from($this->_name, 'gitosis_user_id')
+               ->where('gitosis_group_id = ?', $groupId);
+
+        $rows = $this->fetchAll($select);
+        if ($rows->count() > 0) {
+            return $rows->toArray();
+        }
+        return null;
+    }
 }

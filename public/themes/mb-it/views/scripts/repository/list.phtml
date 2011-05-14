@@ -59,27 +59,27 @@
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($this->pager as $row): ?>
+            <?php foreach ($this->pager as $repo): ?>
             <tr style="background-color:<?php echo $this->cycle(array("#FFFFFF",
                                                                       "#F0F0F0"))
                                                         ->next(); ?>">
-                <td><?php echo $this->escape($row->{'gitosis_repository_name'}); ?></td>
-                <td><?php echo $this->escape($row->{'gitosis_repository_description'}); ?></td>
+                <td><?php echo $this->escape($repo->getName()); ?></td>
+                <td><?php echo $this->escape($repo->getDescription()); ?></td>
                 <td>
-                    <?php if (intval($row->{'gitosis_repository_owner_id'}) > 0): ?>
-                        <?php echo $this->user()->getById($row->{'gitosis_repository_owner_id'}); ?>
-                    <?php else: ?>
+                    <?php if ($repo->getOwner() == null): ?>
                         &nbsp;
+                    <?php else: ?>
+                        <?php echo $this->escape($repo->getOwner()->getName()); ?>
                     <?php endif; ?>
                 </td>
                 <td class="center">
-                    <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'repository', 'id' => $row->{'gitosis_repository_id'}), null, true); ?>">
+                    <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'repository', 'id' => $repo->getId()), null, true); ?>">
                         <img src="<?php echo $this->theme()->getUrl('/images/icons/repo_edit.png'); ?>" alt="Bearbeiten" title="Bearbeiten" />
                     </a>
-                    <a href="<?php echo $this->url(array('action' => 'delete', 'controller' => 'repository', 'id' => $row->{'gitosis_repository_id'}), null, true); ?>">
+                    <a href="<?php echo $this->url(array('action' => 'delete', 'controller' => 'repository', 'id' => $repo->getId()), null, true); ?>">
                         <img src="<?php echo $this->theme()->getUrl('/images/icons/repo_delete.png'); ?>" alt="Löschen" title="Löschen" />
                     </a>
-                    <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'permission', 'id' => $row->{'gitosis_repository_id'}), null, true); ?>">
+                    <a href="<?php echo $this->url(array('action' => 'permission', 'controller' => 'repository', 'id' => $repo->getId()), null, true); ?>">
                         <img src="<?php echo $this->theme()->getUrl('/images/icons/rights.png'); ?>" alt="Berechtigungen" title="Berechtigungen" />
                     </a>
                 </td>

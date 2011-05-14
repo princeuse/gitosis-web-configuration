@@ -38,7 +38,7 @@ p{ line-height: 22px; margin-bottom: 22px; }
 .externerLink { background: #fff url(../images/btn_link_extern.png) right center no-repeat; padding-right: 13px; }
 .mailLink { background: #fff url(../images/btn_link_mail.png) right center no-repeat; padding-right: 13px; }
 .clearboth { clear: both; }
-
+.center { text-align: center; }
 
 /* CONTAINER ------------------------------------------------ */
 #page { width: 1020px; margin: 0 auto; background: url(../images/bg_main.png) 0 0 repeat-y; }
@@ -97,3 +97,5 @@ p{ line-height: 22px; margin-bottom: 22px; }
 .links h3 { margin: 8px 0; }
 
 #toolbar { float: right; }
+
+#ajaxLoader { text-align: center; position: absolute; left: 50%; top: 40%; margin-left: -50px; margin-top: -50px; }

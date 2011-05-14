@@ -28,131 +28,57 @@
  * @category MB-it
  * @package  Controller
  */
-class RepositoryController extends MBit_Controller_Action
+class RepositoryController extends MBit_Controller_Crud
 {
-    /**
-     * initialising controller
-     */
-    public function init()
+
+    public function permissionAction()
     {
-        $this->_model = new Application_Model_Db_Gitosis_Repositories();
+        $id = $this->_getParam('id');
+        if (empty($id)) {
+            $this->_redirectToList();
+        }
+
+        $repo = new Application_Model_Gitosis_Repository();
+        $repo->load($id);
+
+        $group = new Application_Model_Gitosis_Group();
+
+        Zend_View_Helper_PaginationControl::setDefaultViewPartial('pager.phtml');
+        $paginator = Zend_Paginator::factory(
+                        $group->getPaginatorSelect(), 'Object', array('MBit_Paginator_Adapter_' => 'MBit/Paginator/Adapter')
+        );
+        $paginator->getAdapter()->setObjectName('Application_Model_Gitosis_Group');
+        $paginator->setDefaultItemCountPerPage(20);
+        $paginator->setCurrentPageNumber($this->_getParam('page', 1));
+
+        $this->view->pager  = $paginator;
+        $this->view->repo   = $repo;
     }
 
     /**
-     * form for editing/creating a repository
+     * getting form for editing or creating a repository
      *
-     * @return Zend_Form
+     * @return Application_Form_Repository
      */
     protected function _getForm()
     {
-        $form = new Zend_Form();
-        $form->setAttrib('accept-charset', 'UTF-8')
-             ->setDecorators(array('FormElements', 'Form'));
-
-        $paramId = intval($this->_getParam('id'));
-        if ($paramId > 0) {
-            $id = new Zend_Form_Element_Hidden('id');
-            $id->setDecorators(self::$clearDecorator)
-               ->setValue($paramId);
-
-            $form->addElement($id);
+        if (empty($this->_form)) {
+            $this->_form = new Application_Form_Repository();
         }
+        return $this->_form;
+    }
 
-        $name = new Zend_Form_Element_Text('gitosis_repository_name');
-        $name->setDecorators(self::$paragraphDecorator)
-             ->setFilters(array('StripTags', 'StringTrim'))
-             ->setLabel('Name:')
-             ->setAllowEmpty(false)
-             ->setRequired(true)
-             ->addValidator(
-                 'NotEmpty',
-                 true,
-                 array(
-                    'messages' => array (
-                        Zend_Validate_NotEmpty::IS_EMPTY => 'Es muss ein Name angegeben werden'
-                    )
-                )
-             )
-             ->addValidator(
-                 'StringLength',
-                 true,
-                 array(
-                    5,
-                    200,
-                    'messages' => array (
-                        Zend_Validate_StringLength::TOO_LONG  => 'Der Name darf maximal 200 Zeichen lang sein',
-                        Zend_Validate_StringLength::TOO_SHORT => 'Der Name muss mindestens 5 Zeichen lang sein',
-                    )
-                )
-             )
-             ->addValidator(
-                 'Regex',
-                 true,
-                 array(
-                    '/^[a-z-]+$/i',
-                    'messages' => array (
-                        Zend_Validate_Regex::NOT_MATCH => 'Der Name darf nur alphabetische Zeichen (a-z) und Bindestriche enthalten'
-                    )
-                )
-             );
-        $form->addElement($name);
-
-        $owner = new Zend_Form_Element_Select('gitosis_repository_owner_id');
-        $owner->setDecorators(self::$paragraphDecorator)
-              ->setFilters(array('StripTags', 'StringTrim'))
-              ->setLabel('Besitzer:')
-              ->setRequired(true)
-              ->addValidator(
-                 'NotEmpty',
-                 true,
-                 array(
-                    'messages' => array (
-                        Zend_Validate_NotEmpty::IS_EMPTY => 'Es muss ein Besitzer angegeben werden'
-                    )
-                )
-             );
-
-        $userModel = new Application_Model_Db_Gitosis_Users();
-        $rows = $userModel->fetchAll();
-        if ($rows->count() <= 0) {
-            $this->_helper->FlashMessenger->addMessage('Es müssen zuerst Benutzer im System erfasst werden, bevor Repositories erstellt werden können.');
-            $createUserUrl = $this->view->url(
-                array (
-                    'action'     => 'create',
-                    'controller' => 'user'
-                ),
-                null,
-                true
-            );
-            $this->_redirect($createUserUrl, array('prependBase' => false));
-        } else {
-            $owner->addMultiOption('', 'Bitte wählen...');
-            foreach ($rows as $row) {
-                $owner->addMultiOption($row->{'gitosis_user_id'}, $row->{'gitosis_user_name'});
-            }
+    /**
+     * getting model for data of repository
+     *
+     * @return Application_Model_Gitosis_Repository
+     */
+    protected function _getModel()
+    {
+        if (empty($this->_model)) {
+            $this->_model = new Application_Model_Gitosis_Repository();
         }
-        $form->addElement($owner);
-
-        $description = new Zend_Form_Element_Textarea('gitosis_repository_description');
-        $description->setDecorators(self::$paragraphDecorator)
-               ->setFilters(array('StripTags', 'StringTrim'))
-               ->setLabel('Beschreibung:')
-               ->setAttrib('cols', 100)
-               ->setAttrib('rows', 10)
-               ->setAllowEmpty(true);
-        $form->addElement($description);
-
-        $submit = new Zend_Form_Element_Submit('submit');
-        $submit->setDecorators(self::$clearDecorator)
-               ->setLabel('Speichern');
-        $form->addElement($submit);
-
-        $reset = new Zend_Form_Element_Reset('reset');
-        $reset->setDecorators(self::$clearDecorator)
-              ->setLabel('zurück setzen');
-        $form->addElement($reset);
-
-        return $form;
+        return $this->_model;
     }
 
     /**
@@ -163,7 +89,7 @@ class RepositoryController extends MBit_Controller_Action
     protected function _getListUrl()
     {
         return $this->view->url(
-            array (
+            array(
                 'action'     => 'list',
                 'controller' => 'repository'
             ),

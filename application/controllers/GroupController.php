@@ -28,17 +28,14 @@
  * @category MB-it
  * @package  Controller
  */
-class GroupController extends MBit_Controller_Action
+class GroupController extends MBit_Controller_Crud
 {
+
     /**
-     * initialising controller
-     *
-     * setting the model and initialise json-action
+     * initialise json action(s)
      */
     public function init()
     {
-        $this->_model = new Application_Model_Db_Gitosis_Groups();
-
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
         $contextSwitch->addActionContext('ajax', 'json')
                       ->initContext();
@@ -46,37 +43,46 @@ class GroupController extends MBit_Controller_Action
 
     /**
      * list of all users
+     *
+     * if no group id is given this action redirects back to group list.
      */
-    public function addAction ()
+    public function userAction()
     {
         $id = $this->_getParam('id');
         if (empty($id)) {
             $this->_redirectToList();
         }
 
-        $group = $this->_model->getById($id);
+        $group = new Application_Model_Gitosis_Group();
+        $group->load($id);
 
-        $model  = new Application_Model_Db_Gitosis_Users();
-        $select = $model->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
+        $user = new Application_Model_Gitosis_User();
 
         Zend_View_Helper_PaginationControl::setDefaultViewPartial('pager.phtml');
-        $paginator = Zend_Paginator::factory($select);
+        $paginator = Zend_Paginator::factory(
+                        $user->getPaginatorSelect(),
+                        'Object',
+                        array('MBit_Paginator_Adapter_' => 'MBit/Paginator/Adapter')
+        );
+        $paginator->getAdapter()->setObjectName('Application_Model_Gitosis_User');
         $paginator->setDefaultItemCountPerPage(20);
         $paginator->setCurrentPageNumber($this->_getParam('page', 1));
 
-        $this->view->pager   = $paginator;
-        $this->view->group   = $group['gitosis_group_name'];
-        $this->view->groupId = $group['gitosis_group_id'];
+        $this->view->pager = $paginator;
+        $this->view->group = $group->getName();
+        $this->view->groupId = $group->getId();
     }
 
     /**
      * adding/removing users from/to group
+     *
+     * calling this action is only allowed via ajax requests. All other requests
+     * are redirected to user list.
      */
-    public function ajaxAction ()
+    public function ajaxAction()
     {
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
-        if ($contextSwitch->getCurrentContext() !== 'json')
-        {
+        if ($contextSwitch->getCurrentContext() !== 'json') {
             $this->getHelper('Redirector')->gotoSimple('add');
         }
 
@@ -85,20 +91,19 @@ class GroupController extends MBit_Controller_Action
         $groupId = $this->_getParam('groupId');
 
         $message = '';
-        $model = new Application_Model_Db_Gitosis_UsersGroups();
-        if ($action == 'add') {
-            $flag = $model->addUserToGroup($groupId, $userId);
-            if ($flag) {
-                $message = 'Der Benutzer wurde erfolgreich der Gruppe hinzugefügt';
-            } else {
-                $message = 'Der Benutzer konnte nicht zur Gruppe hinzugefügt werden';
+        $group = new Application_Model_Gitosis_Group();
+        $group->load($groupId);
+        if (!empty($action) && ($action == 'remove' || $action == 'add')) {
+            if ($action == 'add') {
+                $group->addUser($userId);
+            } elseif ($action == 'remove') {
+                $group->removeUser($userId);
             }
-        } elseif ($action == 'remove') {
-            $flag = $model->removeUserFromGroup($groupId, $userId);
+            $flag = $group->save();
             if ($flag) {
-                $message = 'Der Benutzer wurde erfolgreich aus der Gruppe entfernt';
+                $message = 'Die Änderung wurde erfolgreich gespeichert.';
             } else {
-                $message = 'Der Benutzer konnte nicht aus der Gruppe entfernt werden';
+                $message = 'Die Änderung konnte nicht gespeichert werden.';
             }
         } else {
             $message = 'Es wurde eine nicht bekannte Aktion "' . $action . '" verwendet';
@@ -110,73 +115,27 @@ class GroupController extends MBit_Controller_Action
     /**
      * getting form for editing or creating a group
      *
-     * @return Zend_Form
+     * @return Application_Form_Group
      */
     protected function _getForm()
     {
-        $form = new Zend_Form();
-        $form->setAttrib('accept-charset', 'UTF-8')
-             ->setDecorators(array('FormElements', 'Form'));
-
-        $paramId = intval($this->_getParam('id'));
-        if ($paramId > 0) {
-            $id = new Zend_Form_Element_Hidden('id');
-            $id->setDecorators(self::$clearDecorator)
-               ->setValue($paramId);
-
-            $form->addElement($id);
+        if (empty($this->_form)) {
+            $this->_form = new Application_Form_Group();
         }
+        return $this->_form;
+    }
 
-        $name = new Zend_Form_Element_Text('gitosis_group_name');
-        $name->setDecorators(self::$paragraphDecorator)
-             ->setFilters(array('StripTags', 'StringTrim'))
-             ->setLabel('Name:')
-             ->setAllowEmpty(false)
-             ->setRequired(true)
-             ->addValidator(
-                 'NotEmpty',
-                 true,
-                 array(
-                    'messages' => array (
-                        Zend_Validate_NotEmpty::IS_EMPTY => 'Es muss ein Name angegeben werden'
-                    )
-                )
-             )
-             ->addValidator(
-                 'StringLength',
-                 true,
-                 array(
-                    5,
-                    200,
-                    'messages' => array (
-                        Zend_Validate_StringLength::TOO_LONG  => 'Der Name darf maximal 200 Zeichen lang sein',
-                        Zend_Validate_StringLength::TOO_SHORT => 'Der Name muss mindestens 5 Zeichen lang sein',
-                    )
-                )
-             )
-             ->addValidator(
-                 'Regex',
-                 true,
-                 array(
-                    '/^[a-z-]+$/i',
-                    'messages' => array (
-                        Zend_Validate_Regex::NOT_MATCH => 'Der Name darf nur alphabetische Zeichen (a-z) und Bindestriche enthalten'
-                    )
-                )
-             );
-        $form->addElement($name);
-
-        $submit = new Zend_Form_Element_Submit('submit');
-        $submit->setDecorators(self::$clearDecorator)
-               ->setLabel('Speichern');
-        $form->addElement($submit);
-
-        $reset = new Zend_Form_Element_Reset('reset');
-        $reset->setDecorators(self::$clearDecorator)
-              ->setLabel('zurück setzen');
-        $form->addElement($reset);
-
-        return $form;
+    /**
+     * getting model for data of group
+     *
+     * @return Application_Model_Gitosis_Group
+     */
+    protected function _getModel()
+    {
+        if (empty($this->_model)) {
+            $this->_model = new Application_Model_Gitosis_Group();
+        }
+        return $this->_model;
     }
 
     /**
@@ -187,12 +146,13 @@ class GroupController extends MBit_Controller_Action
     protected function _getListUrl()
     {
         return $this->view->url(
-            array (
-                'action'     => 'list',
+            array(
+                'action' => 'list',
                 'controller' => 'group'
             ),
             null,
             true
         );
     }
+
 }

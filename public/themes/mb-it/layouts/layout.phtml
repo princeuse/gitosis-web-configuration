@@ -27,7 +27,7 @@
 <?php echo  $this->doctype() ?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-    <base href="<?php echo $this->baseUrl(true); ?>"/>
+    <base href="<?php echo $this->baseUrl(); ?>"/>
     <meta http-equiv="content-type" content="text/html; charset=<?php echo $this->getEncoding() ?>"/>
     <meta name="google-site-verification" content="RPhUUDkdZEnd4NlG93PY9zSfP6EVYWDGihClJIqh_KE" />
 
@@ -72,7 +72,7 @@
         <div id="footer">
             <span id="copyright">Gitosis Web Configuration</span>
             <span id="metanav">
-                <a href="http://www.mb-it.com">MB-it</a> | <a href="https://github.com/mb-it/gitosis-web-configuration">github</a> | <a href="<?php echo $this->url(array('controller' => 'license'), null, true); ?>">Lizenz</a></span>
+                <a href="http://www.mb-it.com" target="_blank">MB-it</a> | <a href="https://github.com/mb-it/gitosis-web-configuration" target="_blank">github</a> | <a href="<?php echo $this->url(array('controller' => 'license'), null, true); ?>">Lizenz</a></span>
         </div>
     </div>
 </body>

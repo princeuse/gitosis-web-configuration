@@ -82,8 +82,8 @@ jQuery('document').ready(function (){
     <?php echo $this->partial('backButton.phtml'); ?>
 </div>
 
-<h1>Gitosis Benutzer &quot<?php echo $this->escape($this->user) ?>&quot; verwalten</h1>
-<?php echo $this->formHidden('gitosis_user_id', $this->userId); ?>
+<h1>Berechtigungen für &quot<?php echo $this->escape($this->repo->getName()) ?>&quot; verwalten</h1>
+<?php echo $this->formHidden('gitosis_repository_id', $this->repo->getId()); ?>
 
 <div id="messages" style="display: none;">
     <ul>
@@ -96,8 +96,9 @@ jQuery('document').ready(function (){
     <table width="100%">
         <thead>
             <tr>
-                <th width="80%">Name</th>
-                <th width="20%" class="center">in Gruppe enthalten</th>
+                <th width="60%">Gruppe</th>
+                <th width="20%" class="center">Lesezugriff</th>
+                <th width="20%" class="center">Schreibzugriff</th>
             </tr>
         </thead>
         <tbody>
@@ -107,12 +108,22 @@ jQuery('document').ready(function (){
                                                         ->next(); ?>">
                 <td><?php echo $this->escape($group->getName()); ?></td>
                 <td class="center">
-                    <?php if ($this->user()->isInGroup($group->getId(), $this->userId)): ?>
-                        <?php $attribs['checked'] = true; ?>
-                    <?php else: ?>
-                        <?php $attribs = null; ?>
-                    <?php endif; ?>
-                    <?php echo $this->formCheckbox('gitosis_group_id_' . $group->getId(), null, $attribs); ?>
+                    <?php
+                        $attribs = array();
+                        if ($this->repo->getGroupRight($group->getId()) == Application_Model_Gitosis_Repository::REPO_RIGHTS_READONLY) {
+                            $attribs['checked'] = true;
+                        }
+                    ?>
+                    <?php echo $this->formCheckbox('gitosis_read_' . $group->getId(), null, $attribs); ?>
+                </td>
+                <td class="center">
+                    <?php
+                        $attribs = array();
+                        if ($this->repo->getGroupRight($group->getId()) == Application_Model_Gitosis_Repository::REPO_RIGHTS_WRITEABLE) {
+                            $attribs['checked'] = true;
+                        }
+                    ?>
+                    <?php echo $this->formCheckbox('gitosis_write_' . $group->getId(), null, $attribs); ?>
                 </td>
             </tr>
             <?php endforeach; ?>
