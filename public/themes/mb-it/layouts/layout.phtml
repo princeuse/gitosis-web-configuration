@@ -1,0 +1,79 @@
+<?php
+/**
+ * MB-it Gitosis Web Configuration
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  - Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  - Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  - Neither the name MB-it nor the names of its contributors may be used to
+ *    endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
+ * @author    Marc Becker <m.becker@mb-it.com>
+ * @category  MB-it
+ * @package   View
+ */
+?>
+<?php echo  $this->doctype() ?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <base href="<?php echo $this->baseUrl(); ?>"/>
+    <meta http-equiv="content-type" content="text/html; charset=<?php echo $this->getEncoding() ?>"/>
+    <meta name="google-site-verification" content="RPhUUDkdZEnd4NlG93PY9zSfP6EVYWDGihClJIqh_KE" />
+
+    <?php echo $this->headTitle() ?>
+
+
+    <?php echo $this->headScript()
+                    ->offsetSetFile(-100,$this->baseUrl('/scripts/jquery-1.5.2.min.js')); ?>
+
+    <?php echo $this->headLink()->appendStylesheet($this->baseUrl('/themes/mb-it/styles/style.css'))
+                                // ->headLink(array('rel' => 'shortcut icon', 'type' => $this->baseUrl() . '/image/x-icon', 'href' => '/images/favicon.ico'), 'PREPEND');
+    ?>
+
+</head>
+<body>
+    <div id="page">
+        <div id="header">
+            <div id="logo">
+                <a href="http://www.mb-it.com"><img src="<?php echo $this->baseUrl('/themes/mb-it/images/logo.png'); ?>" alt="MB-it" width="200" /></a>
+            </div>
+
+            <div id="mainnav">
+                <?php echo $this->navigation()->menu()
+                                              ->setPartial('navi.phtml'); ?>
+            </div>
+
+            <div id="subnav">
+                <?php echo $this->navigation()->menu()
+                                              ->setPartial('subnavi.phtml'); ?>
+            </div>
+        </div>
+
+        <div id="main">
+
+            <div id="content">
+                <?php echo $this->layout()->content; ?>
+            </div>
+
+        <p><br class="clearboth" /></p>
+        </div>
+
+        <div id="footer">
+            <span id="copyright">Gitosis Web Configuration</span>
+            <span id="metanav">
+                <a href="http://www.mb-it.com" target="_blank">MB-it</a> | <a href="https://github.com/mb-it/gitosis-web-configuration" target="_blank">github</a> | <a href="<?php echo $this->url(array('controller' => 'license'), null, true); ?>">Lizenz</a></span>
+        </div>
+    </div>
+</body>
+</html>

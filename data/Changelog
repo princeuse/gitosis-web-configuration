@@ -1,0 +1,8 @@
+version     date            author      annotation
+===============================================================================
+alpha-1     14.05.2011      mbecker     - refactoring of CRUD-Controller
+
+            13.05.2011      mbecker     - added licences controller
+
+            12.05.2011      mbecker     - mb-it Theme added
+                                        - introducing themeing via module
