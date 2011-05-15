@@ -31,6 +31,19 @@
 class RepositoryController extends MBit_Controller_Crud
 {
 
+    /**
+     * initialise json action(s)
+     */
+    public function init()
+    {
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        $contextSwitch->addActionContext('set-permissions', 'json')
+                      ->initContext();
+    }
+
+    /**
+     * listing all groups and checkboxes to grant read- or write access
+     */
     public function permissionAction()
     {
         $id = $this->_getParam('id');
@@ -53,6 +66,42 @@ class RepositoryController extends MBit_Controller_Crud
 
         $this->view->pager  = $paginator;
         $this->view->repo   = $repo;
+    }
+
+    public function setPermissionsAction()
+    {
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        if ($contextSwitch->getCurrentContext() !== 'json') {
+            $this->getHelper('Redirector')->gotoSimple('permission');
+        }
+
+        $flag         = false;
+        $repositoryId = $this->_getParam('repoId');
+        $groupId      = $this->_getParam('groupId');
+        $action       = $this->_getParam('operation');
+
+        if (intval($repositoryId) > 0 && intval($groupId) > 0 && !empty($action)) {
+            $repository = new Application_Model_Gitosis_Repository();
+            $repository->load($repositoryId);
+
+            if ($repository->getId()) {
+                if ($action == 'add') {
+                    $permission = ($this->_getParam('permission') == 'write' ? true : false);
+                    $repository->addGroup($groupId, $permission);
+                } else {
+                    $repository->removeGroup($groupId);
+                }
+
+                $flag = $repository->save();
+            }
+        }
+
+        $message = 'Der Datensatzes konnte nicht gespeichert werden';
+        if ($flag) {
+            $message = 'Die Speicherung des Datensatzes war erfolgreich';
+        }
+
+        $this->view->message = $message;
     }
 
     /**

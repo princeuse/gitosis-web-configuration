@@ -109,7 +109,7 @@ class Application_Form_Repository extends MBit_Form
         $description->setDecorators($this->_elementDecoratorParagraph)
                ->setFilters($this->_standardFilters)
                ->setLabel('Beschreibung')
-               ->setAttrib('cols', 100)
+               ->setAttrib('cols', 80)
                ->setAttrib('rows', 10)
                ->setAllowEmpty(true);
         $this->addElement($description);
