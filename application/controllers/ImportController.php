@@ -31,21 +31,26 @@
 class ImportController extends Zend_Controller_Action
 {
     /**
-     * namespace for storing import data
+     * initialise json action(s)
      */
-    const SESSION_NAMESPACE = 'gitosis_config_import';
+    public function init()
+    {
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        $contextSwitch->addActionContext('user-add', 'json')
+                      ->initContext();
+    }
 
     /**
      * importing existing gitosis configuration
      */
     public function indexAction ()
     {
-        $form = $this->_getImportForm();
+        $form = new Application_Form_Import_Config();
 
         if ($this->getRequest()->isPost() &&
             $form->isValid($this->getRequest()->getPost())) {
 
-                $returnFlag = array();
+                $message = 'Es trat ein Fehler beim Hochladen der Datei auf.';
 
                 $uploadedData = $form->getValues();
                 $fullFilePath = $form->getElement('gitosis_conf')->getFileName();
@@ -56,35 +61,27 @@ class ImportController extends Zend_Controller_Action
                     $importModel->setFile($fullFilePath);
                     $returnFlag = $importModel->import();
 
-                    $importedUserIds = $importModel->getImportedUsers();
-                    if (!empty($importedUserIds)) {
-
-                        if (!is_array($importedUserIds)) {
-                            $importedUserIds = array($importedUserIds);
-                        }
-
-                        $session = new Zend_Session_Namespace(self::SESSION_NAMESPACE);
-                        $session->userIds = $importedUserIds;
+                    if ($returnFlag === Application_Model_Import::IMPORT_OK) {
+                        $importModel->saveToSession();
+                        $message = 'Der Import der Konfiguration war erfolgreich.';
+                        $redirectTarget = array (
+                            'controller' => 'import',
+                            'action'     => 'edit'
+                        );
+                    } else {
+                        $message = $importModel->getErrorMessage($returnFlag);
+                        $redirectTarget = array (
+                            'controller' => 'index',
+                            'action'     => 'index'
+                        );
                     }
                 }
 
-                if (!empty($returnFlag)) {
-                    foreach ($returnFlag as $error) {
-                        $this->_helper->FlashMessenger->addMessage($error);
-                    }
-                } else {
-                    $this->_helper->FlashMessenger->addMessage('Der Import der Konfiguration war erfolgreich.');
-                }
-
+                $this->_helper->FlashMessenger->addMessage($message);
                 unlink($fullFilePath);
 
                 $this->_redirect(
-                    $this->view->url(
-                        array (
-                            'controller' => 'import',
-                            'action'     => 'edit'
-                        )
-                    ),
+                    $this->view->url($redirectTarget),
                     array (
                         'prependBase' => false
                     )
@@ -99,305 +96,93 @@ class ImportController extends Zend_Controller_Action
      */
     public function editAction ()
     {
-        $session = new Zend_Session_Namespace(self::SESSION_NAMESPACE);
-        if (!isset($session->userIds)) {
-            $this->_redirect(
-                $this->view->url(
-                    array (
-                        'controller' => 'index',
-                        'action'     => 'index'
-                    )
-                ),
-                array (
-                    'prependBase' => false
-                )
-            );
-        }
-
-        $userIds = $session->userIds;
-        $form = $this->_getSshKeyForm(array_keys($userIds));
-
-        if ($this->getRequest()->isPost()
-            && $form->isValid($this->getRequest()->getPost())) {
-
-                $userModel = new Application_Model_Db_Gitosis_Users();
-                $success = true;
-
-                $postData = $form->getValues();
-                $userData = array();
-
-                foreach ($postData as $fieldName => $fieldValue) {
-
-                    if (preg_match('/^gitosis_user_name_/', $fieldName)) {
-                        $userId = intval(str_replace('gitosis_user_name_', '', $fieldName));
-
-                        if (!empty($userId) && $userId > 0) {
-
-                            $userData['gitosis_user_name'] = trim($fieldValue);
-
-                            $filePath = $form->getElement('gitosis_user_ssh_key_' . $userId)->getFileName();
-                            $sshKey   = trim(file_get_contents($filePath));
-                            unlink($filePath);
-                            $userData['gitosis_user_ssh_key'] = $sshKey;
-                            unset($sshKey, $filePath);
-
-                            $rowsUpdated = $userModel->update($userData, 'gitosis_user_id = ' . $userId);
-                            if ($rowsUpdated <= 0) {
-                                $success = false;
-                            }
-
-                            $userData = array();
-                        }
-                    }
-                }
-
-                if ($success) {
-                    $this->_helper->FlashMessenger->addMessage('Der Import der Konfiguration war erfolgreich.');
-                } else {
-                    $this->_helper->FlashMessenger->addMessage('Es traten Fehler beim Import der Konfiguration auf.');
-                }
-
-                $this->_redirect(
-                    $this->view->url(
-                        array (
-                            'controller' => 'index',
-                            'action'     => 'index'
-                        )
-                    ),
-                    array (
-                        'prependBase' => false
-                    )
-                );
-        }
-
-        $this->view->form = $form;
+        $importModel = new Application_Model_Import();
+        $users = $importModel->getUsers();
+        $this->view->users = array_keys($users);
     }
 
-    /**
-     * getting import form
-     *
-     * @return Zend_Form
-     */
-    protected function _getImportForm ()
+    public function saveAction()
     {
-        $form = new Zend_Form();
-        $form->setAttrib('accept-charset', 'UTF-8')
-             ->setDecorators(array('FormElements', 'Form'));
+        $importModel = new Application_Model_Import();
 
-        $fileUploadDestination = implode(
-            DIRECTORY_SEPARATOR,
-            array(
-                APPLICATION_PATH,
-                '..',
-                'var',
-                'tmp'
-            )
-        );
-        if (!is_dir($fileUploadDestination)) {
-            mkdir($fileUploadDestination, 0775, true);
-        }
-
-        $fileUpload = new Zend_Form_Element_File('gitosis_conf');
-        $fileUpload->setDecorators(array(
-                        'File',
-                        'Label',
-                        'Errors',
-                        array('Description', array('tag' => 'span')),
-                        array('HtmlTag', array('tag' => 'p'))
-                    ))
-                    ->setLabel('Gitosis Konfiguration:')
-                    ->setFilters(array('StripTags', 'StringTrim'))
-                    ->setAllowEmpty(false)
-                    ->setRequired(true)
-                    ->setDestination($fileUploadDestination)
-                    ->addValidator('Count', true, 1)
-                    ->addValidator('Extension', true, 'conf');
-
-        $validatorUpload = $fileUpload->getValidator('File_Upload');
-        $validatorUpload->setMessages(
-            array (
-                Zend_Validate_File_Upload::ATTACK           => 'Es trat ein Systemfehler auf, die Datei konnte %value% nicht hochgeladen werden.',
-                Zend_Validate_File_Upload::CANT_WRITE       => 'Es trat ein Systemfehler auf, die Datei konnte %value% nicht hochgeladen werden.',
-                Zend_Validate_File_Upload::EXTENSION        => 'Es trat ein Systemfehler auf, die Datei konnte %value% nicht hochgeladen werden.',
-                Zend_Validate_File_Upload::FILE_NOT_FOUND   => 'Es wurde keine Datei zum Hochladen ausgewählt.',
-                Zend_Validate_File_Upload::FORM_SIZE        => 'Die Datei %value% überschreitet die zulässige Dateigröße.',
-                Zend_Validate_File_Upload::INI_SIZE         => 'Die Datei %value% überschreitet die zulässige Dateigröße.',
-                Zend_Validate_File_Upload::NO_FILE          => 'Es wurde keine Datei hochgeladen.',
-                Zend_Validate_File_Upload::NO_TMP_DIR       => 'Es trat ein Systemfehler auf, die Datei konnte %value% nicht hochgeladen werden.',
-                Zend_Validate_File_Upload::PARTIAL          => 'Es trat ein Übertragungsfehler auf. Die Datei %value% wurde nur teilweise hochgeladen.',
-                Zend_Validate_File_Upload::UNKNOWN          => 'Es trat ein Systemfehler auf, die Datei konnte %value% nicht hochgeladen werden.',
-            )
-        );
-
-        $validatorCount = $fileUpload->getValidator('File_Count');
-        $validatorCount->setMessages(
-            array(
-                Zend_Validate_File_Count::TOO_MANY =>
-                    "Es ist nur das Hochladen einer Datei erlaubt"
-            )
-        );
-        $validatorExtension = $fileUpload->getValidator('File_Extension');
-        $validatorExtension->setMessages(
-            array(
-                Zend_Validate_File_Extension::FALSE_EXTENSION =>
-                    'Die Datei muss auf .conf enden.'
-            )
-        );
-        $form->addElement($fileUpload);
-
-        $submit = new Zend_Form_Element_Submit('submit');
-        $submit->setDecorators(array( 'ViewHelper', 'Label', 'Errors'))
-               ->setLabel('Speichern');
-        $form->addElement($submit);
-
-        return $form;
-    }
-
-    /**
-     * form for adding ssh-keys and user names
-     *
-     * @param array $userIds
-     * @return Zend_Form
-     */
-    protected function _getSshKeyForm ($userIds)
-    {
-        $form = new Zend_Form();
-        $form->setAttrib('accept-charset', 'UTF-8')
-             ->setDecorators(array('FormElements', 'Form'));
-
-        $fileUploadDestination = implode(
-            DIRECTORY_SEPARATOR,
-            array(
-                APPLICATION_PATH,
-                '..',
-                'var',
-                'tmp'
-            )
-        );
-
-        $counter = 0;
-        $model = new Application_Model_Db_Gitosis_Users();
-        foreach ($userIds as $userId) {
-
-            $user = $model->getById($userId);
-            if (empty($user)) {
-                continue;
+        $groups = $importModel->getGroups();
+        if (!empty($groups)) {
+            foreach ($groups as $group => $members) {
+                $groupModel = new Application_Model_Gitosis_Group();
+                $groupModel->setName($group);
+                $groupModel->addUsers($members);
+                try {
+                    $groupModel->save();
+                } catch (Exception $e) {
+                    continue;
+                }
             }
+        }
+        unset($groupModel);
 
-            $fileUpload[$counter] = new Zend_Form_Element_File('gitosis_user_ssh_key_' . $userId);
-            $fileUpload[$counter]->setDecorators(array(
-                                    'File',
-                                    'Label',
-                                    'Errors',
-                                    array('Description', array('tag' => 'span')),
-                                    array('HtmlTag', array('tag' => 'p'))
-                                ))
-                                ->setLabel('SSH-Schlüssel:')
-                                ->setFilters(array('StripTags', 'StringTrim'))
-                                ->setAllowEmpty(false)
-                                ->setRequired(true)
-                                ->setDestination($fileUploadDestination)
-                                ->addValidator('Count', true, 1)
-                                ->addValidator('Extension', true, 'pub');
+        $repos = $importModel->getRepositories();
+        if (!empty($repos)) {
+            foreach ($repos as $repo => $data) {
+                $repoModel = new Application_Model_Gitosis_Repository();
+                try {
+                    $repoModel->setName($repo);
 
-            $validatorUpload = $fileUpload[$counter]->getValidator('File_Upload');
-            $validatorUpload->setMessages(
-                array (
-                    Zend_Validate_File_Upload::ATTACK           => 'Es trat ein Systemfehler auf, die Datei konnte %value% nicht hochgeladen werden.',
-                    Zend_Validate_File_Upload::CANT_WRITE       => 'Es trat ein Systemfehler auf, die Datei konnte %value% nicht hochgeladen werden.',
-                    Zend_Validate_File_Upload::EXTENSION        => 'Es trat ein Systemfehler auf, die Datei konnte %value% nicht hochgeladen werden.',
-                    Zend_Validate_File_Upload::FILE_NOT_FOUND   => 'Es wurde keine Datei zum Hochladen ausgewählt.',
-                    Zend_Validate_File_Upload::FORM_SIZE        => 'Die Datei %value% überschreitet die zulässige Dateigröße.',
-                    Zend_Validate_File_Upload::INI_SIZE         => 'Die Datei %value% überschreitet die zulässige Dateigröße.',
-                    Zend_Validate_File_Upload::NO_FILE          => 'Es wurde keine Datei hochgeladen.',
-                    Zend_Validate_File_Upload::NO_TMP_DIR       => 'Es trat ein Systemfehler auf, die Datei konnte %value% nicht hochgeladen werden.',
-                    Zend_Validate_File_Upload::PARTIAL          => 'Es trat ein Übertragungsfehler auf. Die Datei %value% wurde nur teilweise hochgeladen.',
-                    Zend_Validate_File_Upload::UNKNOWN          => 'Es trat ein Systemfehler auf, die Datei konnte %value% nicht hochgeladen werden.',
-                )
-            );
+                    if (array_key_exists('description', $data) && !empty($data['description'])) {
+                        $repoModel->setDescription($data['description']);
+                    }
 
-            $validatorCount = $fileUpload[$counter]->getValidator('File_Count');
-            $validatorCount->setMessages(
-                array(
-                    Zend_Validate_File_Count::TOO_MANY =>
-                        "Es ist nur das Hochladen einer Datei erlaubt"
-                )
-            );
-            $validatorExtension = $fileUpload[$counter]->getValidator('File_Extension');
-            $validatorExtension->setMessages(
-                array(
-                    Zend_Validate_File_Extension::FALSE_EXTENSION =>
-                        'Die Datei muss auf .pub enden.'
-                )
-            );
+                    if (array_key_exists('owner', $data) && !empty($data['owner'])) {
+                        $repoModel->setOwner($data['owner']);
+                    }
 
-            $nameField[$counter] = new Zend_Form_Element_Text('gitosis_user_name_' . $userId);
-            $nameField[$counter]->setDecorators(
-                                    array (
-                                        'ViewHelper',
-                                        'Label',
-                                        'Errors',
-                                        array('Description', array('tag' => 'span')),
-                                        array('HtmlTag', array('tag' => 'p'))
-                                    )
-                                )
-                                ->setFilters(array('StripTags', 'StringTrim'))
-                                ->setLabel('Name:')
-                                ->setAllowEmpty(false)
-                                ->setRequired(true)
-                                ->addValidator(
-                                    'NotEmpty',
-                                    true,
-                                    array(
-                                       'messages' => array (
-                                           Zend_Validate_NotEmpty::IS_EMPTY => 'Es muss der Name angegeben werden'
-                                       )
-                                   )
-                                )
-                                ->addValidator(
-                                    'Alnum',
-                                    true,
-                                    array(
-                                       true,
-                                       'messages' => array (
-                                           Zend_Validate_Alnum::NOT_ALNUM => 'Der Name darf nur alphabetische Zeichen und Ziffern enthalten'
-                                       )
-                                   )
-                                )
-                                ->addValidator(
-                                    'StringLength',
-                                    true,
-                                    array(
-                                       5,
-                                       200,
-                                       'messages' => array (
-                                           Zend_Validate_StringLength::TOO_LONG  => 'Der Name darf maximal 200 Zeichen lang sein',
-                                           Zend_Validate_StringLength::TOO_SHORT => 'Der Name muss mindestens 5 Zeichen lang sein',
-                                       )
-                                   )
-                                );
-
-            $dgName = 'dg_' . $counter;
-            $form->addDisplayGroup(
-                array(
-                    $fileUpload[$counter],
-                    $nameField[$counter]
-                ),
-                $dgName
-            );
-
-            $dg[$counter] = $form->getDisplayGroup($dgName);
-            $dg[$counter]->setLegend($user['gitosis_user_email'])
-                         ->setDecorators(array('FormElements','Fieldset'));
-
-            $counter++;
+                    $repoModel->save();
+                    unset($repoModel);
+                } catch (Exception $e) {
+                    continue;
+                }
+            }
         }
 
-        $submit = new Zend_Form_Element_Submit('submit');
-        $submit->setDecorators(array( 'ViewHelper', 'Label', 'Errors'))
-               ->setLabel('Speichern');
-        $form->addElement($submit);
+        $permissions = $importModel->getPermissions();
+        if (!empty($permissions)) {
+            foreach($permissions as $data) {
+                $groupModel = new Application_Model_Gitosis_Group();
+                $groupModel->loadByName($data['group']);
+                $isWriteable = $data['write'];
+                foreach ($data['repos'] as $repo) {
+                    $groupModel->addRepository($repo, $isWriteable);
+                }
+                $groupModel->save();
+                unset($groupModel);
+            }
+        }
+        $this->_redirect('/');
+    }
 
-        return $form;
+    /**
+     * storing users via ajax
+     */
+    public function userAddAction()
+    {
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        if ($contextSwitch->getCurrentContext() !== 'json') {
+            $this->getHelper('Redirector')->gotoSimple('index');
+        }
+
+        $username = $this->_getParam('username');
+        $email    = $this->_getParam('email');
+        $sshKey   = $this->_getParam('sshkey');
+
+        $userModel = new Application_Model_Gitosis_User();
+        $userModel->setMailAdress($email)
+                  ->setName($username)
+                  ->setSshKey($sshKey);
+
+        if ($userModel->save()) {
+            $this->view->message = 'success';
+        } else {
+            $this->view->message = 'error';
+        }
+
     }
 }

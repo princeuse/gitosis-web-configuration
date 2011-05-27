@@ -24,6 +24,63 @@
  * @package   View
  */
 ?>
+<?php $this->headScript()->captureStart(); ?>
+jQuery('document').ready(function(){
+
+    jQuery('#submit').live('click', function(){
+
+        var email    = jQuery('fieldset:visible input[name=email]').val();
+        var username = jQuery('fieldset:visible input[name=username]').val();
+        var sshKey   = jQuery('fieldset:visible textarea[name="ssh-key"]').val();
+
+        jQuery('fieldset:visible').fadeTo('slow', 0.2);
+        jQuery('#ajaxLoader').toggle();
+        var baseHref = jQuery('base').attr('href');
+
+        jQuery.post(
+            baseHref + '/import/user-add/format/json',
+            {
+                username: username,
+                sshkey:   sshKey,
+                email:    email
+            },
+            function(data) {
+                var newFieldset = jQuery('fieldset:visible').next('fieldset');
+                var oldFieldset = jQuery('fieldset:visible');
+
+                if (newFieldset.length <= 0) {
+                    var baseHref = jQuery('base').attr('href');
+                    window.location.href = baseHref + '/import/save';
+                }
+
+                jQuery(oldFieldset).hide();
+                jQuery('#ajaxLoader').toggle();
+                jQuery(newFieldset).fadeTo('slow', 1);
+            },
+            'json'
+        );
+    });
+});
+<?php $this->headScript()->captureEnd(); ?>
+
+<?php echo $this->partial('ajaxLoader.phtml'); ?>
+
 <h1>Gitosis Import - SSH Keys einfügen</h1>
 
-<?php echo $this->form ?>
+<?php $isFirst = true; ?>
+<?php foreach ($this->users as $user): ?>
+    <fieldset<?php echo ($isFirst ? '' : ' style="display: none;"') ?>>
+        <label class="title"><?php echo $this->escape($user); ?></label>
+        <input type="hidden" name="email" value="<?php echo $user; ?>" />
+        <p>
+            <label for="username">Name:</label>
+            <input type="text" name="username" value="" />
+        </p>
+        <p>
+            <label for="ssh-key">SSH-Schlüssel:</label>
+            <textarea rows="10" cols="80" name="ssh-key"></textarea>
+        </p>
+    </fieldset>
+    <?php $isFirst = false; ?>
+<?php endforeach; ?>
+<input type="submit" id="submit" name="submit" value="Speichern" />

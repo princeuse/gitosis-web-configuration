@@ -88,6 +88,24 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
     }
 
     /**
+     * loading user by email
+     * 
+     * @param string $email
+     * @return Application_Model_Gitosis_User
+     * @throws InvalidArgumentException
+     */
+    public function loadByMail($email)
+    {
+        if (empty($email)) {
+            throw new InvalidArgumentException('email has to be set or given via parameter');
+        }
+
+        $dbModel = new Application_Model_Db_Gitosis_Users();
+        $userId = $dbModel->getByEmail($email);
+        return $this->load($userId);
+    }
+
+    /**
      * storing user and groups to database
      *
      * @return bool
@@ -102,7 +120,7 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
 
     /**
      * deleting a user
-     * 
+     *
      * @param int $id
      * @return bool
      */

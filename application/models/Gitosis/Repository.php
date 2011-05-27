@@ -166,7 +166,10 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
     /**
      * setting owner
      *
-     * @param int|Application_Model_Gitosis_User $user
+     * the user can be identified by id, email or directly by
+     * {@see Application_Model_Gitosis_User}.
+     *
+     * @param mixed $user
      * @return Application_Model_Gitosis_Repository
      */
     public function setOwner($user)
@@ -176,10 +179,17 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
                 $this->_owner = $user;
             }
         } else {
-            $userId = intval($user);
-            if ($userId > 0) {
-                $this->_owner = new Application_Model_Gitosis_User();
-                $this->_owner->load($userId);
+
+            $owner = new Application_Model_Gitosis_User();
+            if (intval($user) > 0) {
+                $userId = intval($user);
+                $owner->load($userId);
+            } else {
+                $owner->loadByMail($user);
+            }
+
+            if ($owner->getId()) {
+                $this->_owner = $owner;
             }
         }
         return $this;
@@ -518,12 +528,19 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
      */
     protected function _getGroupId($group)
     {
-        $groupId = -1;
         if ($group instanceof Application_Model_Gitosis_Group) {
             $groupId = $group->getId();
         } elseif (intval($group) > 0) {
             $groupId = intval($group);
+        } else {
+            $groupModel = new Application_Model_Db_Gitosis_Groups();
+            $groupId = $groupModel->getByName($group);
         }
+
+        if (intval($groupId) <= 0) {
+            $groupId = -1;
+        }
+        
         return $groupId;
     }
 

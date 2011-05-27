@@ -101,3 +101,4 @@ p{ line-height: 22px; margin-bottom: 22px; }
 #ajaxLoader { text-align: center; position: absolute; left: 50%; top: 40%; margin-left: -50px; margin-top: -50px; }
 
 p label { float: left; width: 125px; }
+fieldset label.title { display: block; font-weight: bold; margin-bottom: 20px; }
