@@ -80,6 +80,23 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
     }
 
     /**
+     * loading navigation
+     *
+     * @return Zend_Navigation
+     */
+    protected function _initNavigation()
+    {
+        $navConfig  = realpath(APPLICATION_PATH . DIRECTORY_SEPARATOR . 'configs') . DIRECTORY_SEPARATOR . 'navigation.ini';
+        $iniConfig  = new Zend_Config_Ini($navConfig);
+        $navigation = new Zend_Navigation($iniConfig);
+
+        $view = $this->getResource('view');
+        $view->navigation($navigation);
+
+        return $navigation;
+    }
+
+    /**
      * setting timezone and language
      *
      * @return Zend_Locale
