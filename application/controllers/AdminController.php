@@ -1,6 +1,7 @@
 <?php
+
 /**
- * MB-it Gitosis Web Configuration
+ * APPLICATION
  *
  * All rights reserved.
  *
@@ -21,22 +22,40 @@
  * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
  * @author    Marc Becker <m.becker@mb-it.com>
  * @category  MB-it
- * @package   DB-Models
+ * @package   MODULE
  */
 
 /**
  * @category MB-it
- * @package  DB-Models
+ * @package  MODULE
  */
-class Application_Model_Db_Users extends MBit_Db_Table_Abstract
+class AdminController extends MBit_Controller_Crud
 {
-    /**
-     * @var string
-     */
-    protected $_name = 'admin_users';
+    protected function _getForm()
+    {
+        if (empty($this->_form)) {
+            $this->_form = new Application_Form_Admin_User();
+        }
+        return $this->_form;
+    }
 
-    /**
-     * @var string
-     */
-    protected $_primary = 'admin_id';
+    protected function _getListUrl()
+    {
+        return $this->view->url(
+            array(
+                'action'     => 'list',
+                'controller' => 'admin'
+            ),
+            null,
+            true
+        );
+    }
+
+    protected function _getModel()
+    {
+        if (empty($this->_model)) {
+            $this->_model = new Application_Model_Admin_User();
+        }
+        return $this->_model;
+    }
 }

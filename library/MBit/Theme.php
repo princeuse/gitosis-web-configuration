@@ -66,6 +66,13 @@ class MBit_Theme
     protected $_partialPath = null;
 
     /**
+     * path for mail templates of the theme
+     *
+     * @var string
+     */
+    protected $_mailTemplatePath = null;
+
+    /**
      * Getting instance of this class
      *
      * The parameter is the name of the theme.
@@ -159,6 +166,19 @@ class MBit_Theme
             $this->_viewPath = realpath($this->getBasePath() . DIRECTORY_SEPARATOR . 'views');
         }
         return $this->_viewPath;
+    }
+
+    /**
+     * getting path to mail templates of theme
+     *
+     * @return string
+     */
+    public function getMailTemplatePath()
+    {
+        if ($this->_mailTemplatePath === null) {
+            $this->_mailTemplatePath = realpath($this->getBasePath() . DIRECTORY_SEPARATOR . 'mails');
+        }
+        return $this->_mailTemplatePath;
     }
 
     /**

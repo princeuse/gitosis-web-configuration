@@ -25,13 +25,13 @@
  */
 ?>
 <div id="toolbar">
-    <a href="<?php echo $this->url(array('controller' => 'user', 'action' => 'create'), null, true) ?>">
+    <a href="<?php echo $this->url(array('controller' => 'admin', 'action' => 'create'), null, true) ?>">
         <img src="<?php echo $this->theme()->getUrl('/images/icons/user_add.png') ?>" alt="Benutzer erstellen" title="Benutzer erstellen" />
         neuen Benutzer erstellen
     </a>
 </div>
 
-<h1>Gitosis Benutzer</h1>
+<h1>System-Benutzer</h1>
 
 <?php
     $messages = $this->messages;
@@ -52,7 +52,7 @@
     <table width="100%">
         <thead>
             <tr>
-                <th width="40%">Name</th>
+                <th width="40%">Login</th>
                 <th width="40%">E-Mail</th>
                 <th width="20%">&nbsp;</th>
             </tr>
@@ -62,17 +62,14 @@
             <tr style="background-color:<?php echo $this->cycle(array("#FFFFFF",
                                                                       "#F0F0F0"))
                                                         ->next(); ?>">
-                <td><?php echo $this->escape($user->getName()); ?></td>
-                <td><?php echo $this->escape($user->getMailAdress()); ?></td>
+                <td><?php echo $this->escape($user->getLogin()); ?></td>
+                <td><?php echo $this->escape($user->getEmail()); ?></td>
                 <td class="center">
-                    <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'user', 'id' => $user->getId()), null, true); ?>">
+                    <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'admin', 'id' => $user->getId()), null, true); ?>">
                         <img src="<?php echo $this->theme()->getUrl('/images/icons/user_edit.png'); ?>" alt="Bearbeiten" title="Bearbeiten" />
                     </a>
-                    <a href="<?php echo $this->url(array('action' => 'delete', 'controller' => 'user', 'id' => $user->getId()), null, true); ?>">
+                    <a href="<?php echo $this->url(array('action' => 'delete', 'controller' => 'admin', 'id' => $user->getId()), null, true); ?>">
                         <img src="<?php echo $this->theme()->getUrl('/images/icons/user_delete.png'); ?>" alt="Löschen" title="Löschen" />
-                    </a>
-                    <a href="<?php echo $this->url(array('action' => 'group', 'controller' => 'user', 'id' => $user->getId()), null, true); ?>">
-                        <img src="<?php echo $this->theme()->getUrl('/images/icons/group_go.png'); ?>" alt="Gruppen verwalten" title="Gruppen verwalten" />
                     </a>
                 </td>
             </tr>

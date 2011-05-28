@@ -28,7 +28,7 @@
  * @category MB-it
  * @package  Forms
  */
-class Application_Form_User extends MBit_Form
+class Application_Form_Admin_User extends MBit_Form
 {
     /**
      * creating the form
@@ -39,10 +39,10 @@ class Application_Form_User extends MBit_Form
         $id->setDecorators($this->_elementDecoratorNoTags);
         $this->addElement($id);
 
-        $name = new Zend_Form_Element_Text('name');
+        $name = new Zend_Form_Element_Text('login');
         $name->setDecorators($this->_elementDecoratorParagraph)
              ->setFilters($this->_standardFilters)
-             ->setLabel('Name')
+             ->setLabel('Login')
              ->setAllowEmpty(false)
              ->setRequired(true)
              ->addValidator(
@@ -50,7 +50,7 @@ class Application_Form_User extends MBit_Form
                  true,
                  array(
                     'messages' => array (
-                        Zend_Validate_NotEmpty::IS_EMPTY => 'Es muss ein Benutzername angegeben werden'
+                        Zend_Validate_NotEmpty::IS_EMPTY => 'Es muss ein Login-Name angegeben werden'
                     )
                 )
              )
@@ -60,7 +60,7 @@ class Application_Form_User extends MBit_Form
                  array(
                     true,
                     'messages' => array (
-                        Zend_Validate_Alnum::NOT_ALNUM => 'Der Name darf nur alphabetische Zeichen und Ziffern enthalten'
+                        Zend_Validate_Alnum::NOT_ALNUM => 'Der Login-Name darf nur alphanumerische Zeichen enthalten'
                     )
                 )
              )
@@ -71,8 +71,8 @@ class Application_Form_User extends MBit_Form
                     5,
                     200,
                     'messages' => array (
-                        Zend_Validate_StringLength::TOO_LONG  => 'Der Name darf maximal 200 Zeichen lang sein',
-                        Zend_Validate_StringLength::TOO_SHORT => 'Der Name muss mindestens 5 Zeichen lang sein',
+                        Zend_Validate_StringLength::TOO_LONG  => 'Der Login-Name darf maximal 200 Zeichen lang sein',
+                        Zend_Validate_StringLength::TOO_SHORT => 'Der Login-Name muss mindestens 5 Zeichen lang sein',
                     )
                 )
              );
@@ -120,25 +120,6 @@ class Application_Form_User extends MBit_Form
                  )
               );
         $this->addElement($email);
-
-        $sshKey = new Zend_Form_Element_Textarea('ssh_key');
-        $sshKey->setDecorators($this->_elementDecoratorParagraph)
-               ->setFilters($this->_standardFilters)
-               ->setLabel('SSH-Schlüssel')
-               ->setAttrib('cols', 80)
-               ->setAttrib('rows', 10)
-               ->setAllowEmpty(false)
-               ->setRequired(true)
-               ->addValidator(
-                  'NotEmpty',
-                  true,
-                  array(
-                     'messages' => array (
-                         Zend_Validate_NotEmpty::IS_EMPTY => 'Es muss eine SSH-Schlüssel angegeben werden'
-                     )
-                 )
-              );
-        $this->addElement($sshKey);
 
         $submit = new Zend_Form_Element_Submit('submit');
         $submit->setDecorators($this->_elementDecoratorClear)
