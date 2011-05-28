@@ -177,7 +177,6 @@ class Application_Model_Import
         if (empty($this->_permissions)) {
             $this->loadFromSession();
         }
-        Zend_Debug::dump($this->_permissions, '$this->_permissions', true);
         return $this->_permissions;
     }
 
@@ -284,7 +283,9 @@ class Application_Model_Import
     {
         foreach ($this->_config as $section => $values) {
             if (strpos($section, 'group') === 0) {
-                $group = trim(str_replace('group', '', $section));
+                $group = trim((string) $section);
+                $group = preg_replace('/^group\s/', '', $group);
+
                 if (empty($group)) {
                     continue;
                 }
@@ -317,7 +318,8 @@ class Application_Model_Import
                     );
                 }
             } elseif (strpos($section, 'repo') === 0) {
-                $repo = trim(str_replace('repo', '', $section));
+                $repo = trim((string) $section);
+                $repo = preg_replace('/^repo\s/', '', $repo);
                 if (empty($repo)) {
                     continue;
                 }

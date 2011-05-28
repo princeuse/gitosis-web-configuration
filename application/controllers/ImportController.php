@@ -41,7 +41,7 @@ class ImportController extends Zend_Controller_Action
     }
 
     /**
-     * importing existing gitosis configuration
+     * uploading gitosis configuration
      */
     public function indexAction ()
     {
@@ -101,6 +101,9 @@ class ImportController extends Zend_Controller_Action
         $this->view->users = array_keys($users);
     }
 
+    /**
+     * storing groups, repositories and permissions
+     */
     public function saveAction()
     {
         $importModel = new Application_Model_Import();
@@ -148,6 +151,7 @@ class ImportController extends Zend_Controller_Action
             foreach($permissions as $data) {
                 $groupModel = new Application_Model_Gitosis_Group();
                 $groupModel->loadByName($data['group']);
+
                 $isWriteable = $data['write'];
                 foreach ($data['repos'] as $repo) {
                     $groupModel->addRepository($repo, $isWriteable);

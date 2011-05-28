@@ -582,8 +582,9 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
             }
         } else {
             foreach ($this->_originData as $fieldName => $fieldValue) {
-                if ($dbData[$fieldName] == $fieldValue) {
-                    unset($dbData[$fieldName]);
+                if (array_key_exists($fieldName, $dbData) &&
+                    $dbData[$fieldName] == $fieldValue) {
+                        unset($dbData[$fieldName]);
                 }
             }
 
@@ -704,6 +705,13 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
             $repoId = $user->getId();
         } elseif (intval($repo) > 0) {
             $repoId = intval($repo);
+        } else {
+            $repoModel = new Application_Model_Db_Gitosis_Repositories();
+            $repoId = $repoModel->getByName($repo);
+        }
+
+        if (intval($repoId) > 0) {
+            $repoId = intval($repoId);
         } else {
             $repoId = -1;
         }
