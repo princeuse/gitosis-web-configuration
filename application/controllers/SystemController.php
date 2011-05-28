@@ -31,6 +31,9 @@
 class SystemController extends Zend_Controller_Action
 {
 
+    /**
+     * redirecting to configuration
+     */
     public function indexAction ()
     {
         $this->_redirect(
