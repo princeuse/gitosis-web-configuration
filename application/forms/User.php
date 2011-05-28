@@ -125,7 +125,7 @@ class Application_Form_User extends MBit_Form
         $sshKey->setDecorators($this->_elementDecoratorParagraph)
                ->setFilters($this->_standardFilters)
                ->setLabel('SSH-Schlüssel')
-               ->setAttrib('cols', 100)
+               ->setAttrib('cols', 80)
                ->setAttrib('rows', 10)
                ->setAllowEmpty(false)
                ->setRequired(true)

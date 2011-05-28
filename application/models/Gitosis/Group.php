@@ -84,6 +84,33 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
     }
 
     /**
+     * loading group by name
+     *
+     * @param string $name
+     * @return Application_Model_Gitosis_Group
+     * @throws InvalidArgumentException
+     */
+    public function loadByName($name)
+    {
+        $name = trim((string) $name);
+        if (empty($name)) {
+            throw new InvalidArgumentException('group name has to be set or given via parameter');
+        }
+
+        $dbModel = new Application_Model_Db_Gitosis_Groups();
+        $groupId = $dbModel->getByName($name);
+
+        if (intval($groupId) > 0) {
+            $this->_id = $groupId;
+            $this->_loadGroup();
+            $this->_loadRepositories();
+            $this->_loadUsers();
+        }
+
+        return $this;
+    }
+
+    /**
      * storing group to database
      *
      * @return bool
@@ -347,7 +374,8 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
      * adding user to group
      *
      * The given parameter can be an instance of the model
-     * {@see Application_Model_Gitosis_User} or the id of the user.
+     * {@see Application_Model_Gitosis_User}, the mail address of the user or
+     * the id of the user.
      *
      * @param Application_Model_Gitosis_User|int $user
      * @return Application_Model_Gitosis_Group
@@ -554,8 +582,9 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
             }
         } else {
             foreach ($this->_originData as $fieldName => $fieldValue) {
-                if ($dbData[$fieldName] == $fieldValue) {
-                    unset($dbData[$fieldName]);
+                if (array_key_exists($fieldName, $dbData) &&
+                    $dbData[$fieldName] == $fieldValue) {
+                        unset($dbData[$fieldName]);
                 }
             }
 
@@ -581,7 +610,11 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
             throw new UnexpectedValueException('no group id given, cannot save repositories');
         }
 
-        $actualRepositories  = array_keys($this->_repositories);
+        if (!is_array($this->_repositories)) {
+            $actualRepositories  = array();
+        } else {
+            $actualRepositories  = array_keys($this->_repositories);
+        }
         $currentRepositories = array_keys($this->_getDbRepositoryIds());
 
         $addedRepos    = array_diff($actualRepositories, $currentRepositories);
@@ -603,7 +636,7 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
     }
 
     /**
-     * savin user changes
+     * saving user changes
      */
     protected function _saveUsers()
     {
@@ -648,7 +681,11 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
         } elseif (intval($user) > 0) {
             $userId = intval($user);
         } else {
-            $userId = -1;
+            $dbModel = new Application_Model_Db_Gitosis_Users();
+            $userId = $dbModel->getByEmail($user);
+            if (!$userId) {
+                $userId = -1;
+            }
         }
 
         return $userId;
@@ -668,6 +705,13 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
             $repoId = $user->getId();
         } elseif (intval($repo) > 0) {
             $repoId = intval($repo);
+        } else {
+            $repoModel = new Application_Model_Db_Gitosis_Repositories();
+            $repoId = $repoModel->getByName($repo);
+        }
+
+        if (intval($repoId) > 0) {
+            $repoId = intval($repoId);
         } else {
             $repoId = -1;
         }

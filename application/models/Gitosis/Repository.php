@@ -166,7 +166,10 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
     /**
      * setting owner
      *
-     * @param int|Application_Model_Gitosis_User $user
+     * the user can be identified by id, email or directly by
+     * {@see Application_Model_Gitosis_User}.
+     *
+     * @param mixed $user
      * @return Application_Model_Gitosis_Repository
      */
     public function setOwner($user)
@@ -176,10 +179,17 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
                 $this->_owner = $user;
             }
         } else {
-            $userId = intval($user);
-            if ($userId > 0) {
-                $this->_owner = new Application_Model_Gitosis_User();
-                $this->_owner->load($userId);
+
+            $owner = new Application_Model_Gitosis_User();
+            if (intval($user) > 0) {
+                $userId = intval($user);
+                $owner->load($userId);
+            } else {
+                $owner->loadByMail($user);
+            }
+
+            if ($owner->getId()) {
+                $this->_owner = $owner;
             }
         }
         return $this;
@@ -289,10 +299,11 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
 
         $repoId = $this->getId();
         if (empty($repoId)) {
-            throw new InvalidArgumentException('no repository id given, cannot load data');
+            $this->_id = null;
+        } else {
+            $this->_loadRepository($repoId);
+            $this->_loadGroups();
         }
-        $this->_loadRepository($repoId);
-        $this->_loadGroups();
 
         return $this;
     }
@@ -376,8 +387,7 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
      */
     public function save()
     {
-        if ($this->_saveRepository()) {
-            $this->_saveGroups();
+        if ($this->_saveRepository() && $this->_saveGroups()) {
             return true;
         }
         return false;
@@ -453,12 +463,21 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
             }
         } elseif (is_array($this->_originData)) {
             foreach ($this->_originData as $fieldName => $fieldValue) {
+
+                if ($fieldName == 'gitosis_repository_id') {
+                    continue;
+                }
+
                 if ($fieldValue == $dbData[$fieldName]) {
                     unset($dbData[$fieldName]);
                 }
             }
 
-            return (bool) $repoModel->update($dbData, array('gitosis_repository_id = ?' => $repoId));
+            if (empty($dbData)) {
+                return true;
+            } else {
+                return (bool) $repoModel->update($dbData, array('gitosis_repository_id = ?' => $repoId));
+            }
         }
         return false;
     }
@@ -477,18 +496,28 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
             $removedGroups  = array_diff($currentGroups, $actGroups);
 
             $groupRepoModel = new Application_Model_Db_Gitosis_GroupRights();
+            $returnFlag = true;
             if (!empty($addedGroups)) {
                 foreach ($addedGroups as $groupId) {
-                    $groupRepoModel->addRepoGroupRelation($repoId, $groupId, $this->_groups[$groupId]);
+                    $added = $groupRepoModel->addRepoGroupRelation($repoId, $groupId, $this->_groups[$groupId]);
+                    if ($returnFlag && !$added) {
+                        $returnFlag = false;
+                    }
+
                 }
             }
 
             if (!empty($removedGroups)) {
                 foreach ($removedGroups as $groupId) {
-                    $groupRepoModel->deleteRepoGroupRelation($repoId, $groupId);
+                    $removed = $groupRepoModel->deleteRepoGroupRelation($repoId, $groupId);
+                    if ($returnFlag && !$removed) {
+                        $returnFlag = false;
+                    }
                 }
             }
+            return $returnFlag;
         }
+        return false;
     }
 
     /**
@@ -499,12 +528,19 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
      */
     protected function _getGroupId($group)
     {
-        $groupId = -1;
         if ($group instanceof Application_Model_Gitosis_Group) {
             $groupId = $group->getId();
         } elseif (intval($group) > 0) {
             $groupId = intval($group);
+        } else {
+            $groupModel = new Application_Model_Db_Gitosis_Groups();
+            $groupId = $groupModel->getByName($group);
         }
+
+        if (intval($groupId) <= 0) {
+            $groupId = -1;
+        }
+        
         return $groupId;
     }
 

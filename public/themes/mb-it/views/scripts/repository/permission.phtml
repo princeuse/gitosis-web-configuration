@@ -26,14 +26,30 @@
 ?>
 <?php $this->headScript()->captureStart(); ?>
 jQuery('document').ready(function (){
+
     jQuery('input[type=checkbox]').bind(
         'click',
         function () {
             var baseHref = jQuery('base').attr('href');
 
+            var repositoryId = jQuery('#gitosis_repository_id').val();
             var attribId = jQuery(this).attr('id');
-            var groupId  = attribId.replace('gitosis_group_id_', '');
-            var userId   = jQuery('#gitosis_user_id').val();
+            var permission = 'unknown';
+            var groupId = '';
+
+            if (attribId.search('read') > 0) {
+
+                permission = 'read';
+                groupId  = attribId.replace('gitosis_read_', '');
+
+            } else if (attribId.search('write') > 0) {
+
+                permission = 'write';
+                groupId  = attribId.replace('gitosis_write_', '');
+
+            } else {
+                return;
+            }
 
             var isChecked = jQuery(this).is(':checked');
             var action    = 'unknown';
@@ -44,33 +60,37 @@ jQuery('document').ready(function (){
                 action = 'remove';
             }
 
-            jQuery('#main table').fadeTo('fast', 0.2);
-            jQuery('#ajaxLoader').toggle();
+            if (action != "unknown" && permission != 'unknown' && parseInt(groupId) > 0 && parseInt(repositoryId)) {
 
-            jQuery.post(
-                baseHref + '/user/ajax/format/json',
-                {
-                    operation: action,
-                    userId:    userId,
-                    groupId:   groupId
-                },
-                function (data) {
-                    jQuery('#ajaxLoader').toggle();
-                    jQuery('#main table').fadeTo('fast', 1);
+                jQuery('#main table').fadeTo('fast', 0.2);
+                jQuery('#ajaxLoader').toggle();
 
-                    jQuery('#messages ul').empty();
-                    jQuery('#messages ul').html('<li>' + data.message + '</li>');
-                    jQuery('#messages').show();
+                jQuery.post(
+                    baseHref + '/repository/set-permissions/format/json',
+                    {
+                        operation:  action,
+                        permission: permission,
+                        repoId:     repositoryId,
+                        groupId:    groupId
+                    },
+                    function (data) {
+                        jQuery('#ajaxLoader').toggle();
+                        jQuery('#main table').fadeTo('fast', 1);
 
-                    setTimeout(
-                        function() {
-                            jQuery("#messages").fadeOut('slow');
-                        },
-                        5000
-                    );
-                },
-                'json'
-            );
+                        jQuery('#messages ul').empty();
+                        jQuery('#messages ul').html('<li>' + data.message + '</li>');
+                        jQuery('#messages').show();
+
+                        setTimeout(
+                            function() {
+                                jQuery("#messages").fadeOut('slow');
+                            },
+                            5000
+                        );
+                    },
+                    'json'
+                );
+            }
         }
     );
 });

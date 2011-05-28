@@ -127,8 +127,8 @@ class Application_Model_Db_Gitosis_GroupRights extends MBit_Db_Table_Abstract
     {
         $flag = $this->delete(
             array(
-                'gitois_group_id = ?'       => $groupId,
-                'gitois_repository_id = ?'  => $repoId
+                'gitosis_group_id = ?'       => $groupId,
+                'gitosis_repository_id = ?'  => $repoId
             )
         );
 
@@ -149,12 +149,8 @@ class Application_Model_Db_Gitosis_GroupRights extends MBit_Db_Table_Abstract
         $isWriteable = ($isWriteable ? 1 : 0);
 
         $select = $this->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
-        $select->where(
-            array(
-                'gitois_group_id = ?'       => $groupId,
-                'gitois_repository_id = ?'  => $repoId
-            )
-        );
+        $select->where('gitosis_group_id = ?', $groupId);
+        $select->where('gitosis_repository_id = ?', $repoId);
 
         $row = $this->fetchRow($select);
         if (empty($row)) {
@@ -165,6 +161,13 @@ class Application_Model_Db_Gitosis_GroupRights extends MBit_Db_Table_Abstract
         $row->{'gitosis_group_id'} = $groupId;
         $row->{'is_writeable'} = $isWriteable;
 
-        return (bool) $row->save();
+        try {
+            $flag = (bool) $row->save();
+        } catch(Exception $e) {
+            Zend_Registry::get('Zend_Log')->error($e->getMessage());
+            $flag = false;
+        }
+
+        return $flag;
     }
 }

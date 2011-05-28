@@ -44,6 +44,19 @@ abstract class MBit_Form extends Zend_Form
     );
 
     /**
+     * decorator for file upload element (paragraph)
+     *
+     * @var array
+     */
+    protected $_elementDecoratorFile = array(
+        'File',
+        'LabelExt',
+        'Errors',
+        array('Description', array('tag' => 'span')),
+        array('HtmlTag', array('tag' => 'p'))
+    );
+
+    /**
      * decorator for elements (no embracing tags)
      *
      * @var array
@@ -55,6 +68,15 @@ abstract class MBit_Form extends Zend_Form
     );
 
     /**
+     * decorator for elements (clear)
+     *
+     * @var array
+     */
+    protected $_elementDecoratorClear = array(
+		'ViewHelper'
+    );
+
+    /**
      * decorator for groups (fieldset)
      *
      * @var array
@@ -62,15 +84,6 @@ abstract class MBit_Form extends Zend_Form
     protected $_groupDecoratorDefault = array(
         'FormElements',
     	'Fieldset'
-    );
-
-    /**
-     * decorator for elements (clear)
-     *
-     * @var array
-     */
-    protected $_elementDecoratorClear = array(
-		'ViewHelper'
     );
 
     /**

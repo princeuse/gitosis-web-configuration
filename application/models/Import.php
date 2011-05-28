@@ -33,28 +33,18 @@ class Application_Model_Import
     /**
      * constants defining error messages
      */
-    const IMPORT_FILE_NOT_FOUND     = 1;
-    const IMPORT_FILE_WRONG_FORMAT  = 2;
-    const IMPORT_FILE_SUCCESS       = 3;
+    const IMPORT_OK                     = 0;
+    const IMPORT_FILE_NOT_FOUND         = 1;
+    const IMPORT_FILE_WRONG_FORMAT      = 2;
+    const IMPORT_NO_DATA                = 3;
+    const IMPORT_NO_GROUPS              = 4;
+    const IMPORT_NO_REPOS               = 5;
+    const IMPORT_NO_USERS               = 6;
 
     /**
-     * patterns for regular expressions
+     * constant for session storage
      */
-    const PATTERN_GROUPS            = '/^\[group[\s]*([a-z0-9-]*)\]$/i';
-    const PATTERN_REPOSITORY        = '/^\[repo[\s]*([a-z0-9-]*)\]$/i';
-    const PATTERN_MEMBERS           = '/^members[\s]*=([a-z0-9-\.\@\s]*)$/i';
-    const PATTERN_OWNER             = '/^owner[\s]*=([a-z0-9-\.\@\s]*)$/i';
-    const PATTERN_DESCRIPTION       = '/^description[\s]*=([a-z0-9- "]*)$/i';
-    const PATTERN_REPO_IN_GROUP     = '/^(readonly|writable)[\s]*=([a-z0-9-\s]*)$/i';
-
-    /**
-     * constants for storing data
-     */
-    const DATA_KEY_GROUPS            = 'GROUPS';
-    const DATA_KEY_REPOS             = 'REPOS';
-    const DATA_KEY_USERS             = 'USERS';
-    const DATA_KEY_MAPPING           = 'REPOS_IN_GROUPS';
-    const DATA_KEY_ERRORS            = 'ERRORS';
+    const SESSION_NAMESPACE             = 'gitosis_import_config';
 
     /**
      * @var string
@@ -62,14 +52,29 @@ class Application_Model_Import
     protected $_file = null;
 
     /**
-     * @param array
+     * @var array
      */
-    protected $_data = null;
+    protected $_config = null;
 
     /**
-     * @param array
+     * @var array
      */
-    protected $_stats = null;
+    protected $_users = null;
+
+    /**
+     * @var array
+     */
+    protected $_groups = null;
+
+    /**
+     * @var array
+     */
+    protected $_repositories = null;
+
+    /**
+     * @var array
+     */
+    protected $_permissions = null;
 
     /**
      * setting file for import
@@ -77,7 +82,7 @@ class Application_Model_Import
      * @param string $file
      * @return Application_Model_Import
      */
-    public function setFile ($file)
+    public function setFile($file)
     {
         if (!empty($file) && file_exists($file)) {
             $this->_file = $file;
@@ -109,569 +114,249 @@ class Application_Model_Import
 
     /**
      * import of file
+     *
+     * @return int
      */
-    public function import ()
+    public function import()
     {
-        $this->_readConfigFile();
-
-        $errors = array();
-
-        if (!$this->_addGroupsToDb()) {
-            $errors[] = 'Es trat ein Fehler beim Speichern der Gruppen auf, bitte prüfen Sie, ob alle Daten korrekt übernommen wurden.';
+        $flag = $this->_readConfigFile();
+        if ($flag !== self::IMPORT_OK) {
+            return $flag;
         }
 
-        if (!$this->_addUsersToDb()) {
-            $errors[] = 'Es trat ein Fehler beim Speichern der Benutzer auf, bitte prüfen Sie, ob alle Daten korrekt übernommen wurden.';
-        }
-
-        if (!$this->_addReposToDb()) {
-            $errors[] = 'Es trat ein Fehler beim Speichern der Repositories auf, bitte prüfen Sie, ob alle Daten korrekt übernommen wurden.';
-        }
-
-        if (!$this->_addMappingRepoGroupUserToDb()) {
-            $errors[] = 'Es trat ein Fehler beim Verknüpfen der Benutzer, Berechtigungen und Repositories auf, bitte prüfen Sie, ob alle Daten korrekt übernommen wurden.';
-        }
-
-        $returnErrors = array();
-        $importErrors = $this->_getData(self::DATA_KEY_ERRORS);
-        if (!empty($importErrors)) {
-            if (!is_array($importErrors)) {
-                $importErrors = array ($importErrors);
-            }
-
-            $returnErrors = $importErrors;
-        }
-
-        if (!empty($errors)) {
-            if (!is_array($errors)) {
-                $errors = array ($errors);
-            }
-
-            $returnErrors = array_merge($returnErrors, $errors);
-        }
-        return $returnErrors;
+        $flag = $this->_parseConfig();
+        return $flag;
     }
 
     /**
-     * getting ids of imported users
+     * getting imported users
      *
      * @return array
      */
-    public function getImportedUsers ()
+    public function getUsers()
     {
-        return $this->_getData(self::DATA_KEY_USERS);
+        if (empty($this->_users)) {
+            $this->loadFromSession();
+        }
+        return $this->_users;
     }
 
     /**
-     * reading import file and calling setters for storing data of groups,
-     * users, repositories aso.
-     * 
-     * @return type
+     * getting imported repositories
+     *
+     * @return array
      */
-    protected function _readConfigFile ()
+    public function getRepositories()
+    {
+        if (empty($this->_repositories)) {
+            $this->loadFromSession();
+        }
+        return $this->_repositories;
+    }
+
+    /**
+     * getting imported groups
+     *
+     * @return array
+     */
+    public function getGroups()
+    {
+        if (empty($this->_groups)) {
+            $this->loadFromSession();
+        }
+        return $this->_groups;
+    }
+
+    /**
+     * getting imported permissions
+     *
+     * @return array
+     */
+    public function getPermissions()
+    {
+        if (empty($this->_permissions)) {
+            $this->loadFromSession();
+        }
+        return $this->_permissions;
+    }
+
+    /**
+     * storing class variables to session
+     */
+    public function saveToSession()
+    {
+        $session = new Zend_Session_Namespace(self::SESSION_NAMESPACE);
+        foreach (get_class_vars(get_class($this)) as $name => $value) {
+            $session->{$name} = serialize($this->{$name});
+        }
+    }
+
+    /**
+     * loading from session
+     */
+    public function loadFromSession()
+    {
+        $session = new Zend_Session_Namespace(self::SESSION_NAMESPACE);
+        foreach (get_class_vars(get_class($this)) as $name => $value) {
+            $this->{$name} = unserialize($session->{$name});
+        }
+    }
+
+    /**
+     * unsetting all session data
+     */
+    public function removeFromSession()
+    {
+        $session = new Zend_Session_Namespace(self::SESSION_NAMESPACE);
+        $session->unsetAll();
+    }
+
+    /**
+     * getting error message to given error id
+     *
+     * @param int $errorId
+     * @return string
+     */
+    public function getErrorMessage($errorId)
+    {
+        switch ($errorId) {
+            case self::IMPORT_FILE_NOT_FOUND:
+                return 'Die Import-Datei wurde nicht gefunden';
+
+            case self::IMPORT_FILE_WRONG_FORMAT:
+                return 'Das Format der Import-Datei ist fehlerhaft.';
+
+            case self::IMPORT_NO_DATA:
+                return 'Die importierte Datei enthielt keine Daten.';
+
+            case self::IMPORT_NO_GROUPS:
+                return 'Die importierte Datei enthielt keine Gruppen.';
+
+            case self::IMPORT_NO_REPOS:
+                return 'Die importierte Datei enthielt keine Repositories.';
+
+            case self::IMPORT_NO_USERS:
+                return 'Die importierte Datei enthielt keine Benutzer.';
+
+            case self::IMPORT_OK:
+                return 'Der Import war erfolgreich.';
+
+            default:
+                Zend_Registry::get('Zend_Log')->error('Beim Import einer Konfiguration wurde die nicht bekannte Fehler-ID "' . $errorId . '" übergeben');
+                return 'Es trat ein unbekannter Fehler auf.';
+        }
+    }
+
+    /**
+     * reading import file
+     *
+     * this function returns one of the constants declared to identify status
+     * of import
+     *
+     * @return int
+     */
+    protected function _readConfigFile()
     {
 
         if (empty($this->_file) || !file_exists($this->_file)) {
             return self::IMPORT_FILE_NOT_FOUND;
         }
 
-        $groups = array();
-        $users  = array();
-        $repos  = array();
-        $userToGroups  = array();
+        $gitosisConf = parse_ini_file($this->_file, true);
+        if (!empty($gitosisConf) && array_key_exists('gitosis', $gitosisConf)) {
+            unset($gitosisConf['gitosis']);
+            $this->_config = $gitosisConf;
+            return self::IMPORT_OK;
+        }
+        return self::IMPORT_FILE_WRONG_FORMAT;
+    }
 
-        $belongsTo = null;
-        $errors    = array();
+    /**
+     * parsing configuration
+     *
+     * this function returns one of the constants declared to identify status
+     * of import
+     *
+     * @return int
+     */
+    protected function _parseConfig()
+    {
+        foreach ($this->_config as $section => $values) {
+            if (strpos($section, 'group') === 0) {
+                $group = trim((string) $section);
+                $group = preg_replace('/^group\s/', '', $group);
 
-        $isFirst = true;
-        $fileHandle = fopen($this->_file, 'r');
-        while (false !== ($line = fgets($fileHandle))) {
-            $line = trim($line);
-
-            if ($isFirst && $line !== '[gitosis]') {
-                return self::IMPORT_FILE_WRONG_FORMAT;
-            } elseif ($isFirst && $line == '[gitosis]') {
-                $isFirst = false;
-                continue;
-            } elseif (empty($line)) {
-                continue;
-            }
-
-            if (preg_match(self::PATTERN_GROUPS, $line)) {
-
-                $group = $this->_getGroup($line);
                 if (empty($group)) {
                     continue;
                 }
-                $belongsTo = $group;
-                $groups[] = $group;
-                continue;
 
-            } elseif (preg_match(self::PATTERN_REPOSITORY, $line)) {
+                if (!array_key_exists('members', $values)) {
+                    continue;
+                }
+                $users = explode(' ', $values['members']);
+                foreach ($users as $user) {
+                    $user = trim((string) $user);
+                    if (!empty($user)) {
+                        $this->_users[$user] = array();
+                        $this->_groups[$group][] = $user;
+                    }
+                }
 
-                $repo = $this->_getRepository($line);
+                if (array_key_exists('writable', $values)) {
+                    $this->_permissions[] = array(
+                        'group' => $group,
+                        'repos' => explode(' ', $values['writable']),
+                        'write' => true
+                    );
+                }
+
+                if (array_key_exists('readonly', $values)) {
+                    $this->_permissions[] = array(
+                        'group' => $group,
+                        'repos' => explode(' ', $values['readonly']),
+                        'write' => false
+                    );
+                }
+            } elseif (strpos($section, 'repo') === 0) {
+                $repo = trim((string) $section);
+                $repo = preg_replace('/^repo\s/', '', $repo);
                 if (empty($repo)) {
                     continue;
                 }
-                $belongsTo    = $repo;
-                $repos[$repo] = array('desc' => '', 'owner' => '');
-                continue;
 
-            } elseif (preg_match(self::PATTERN_MEMBERS, $line)) {
+                $description = null;
+                $owner = null;
 
-                $members = $this->_getMembers($line);
-                if (empty($belongsTo) && !empty($members)) {
-                    $errors[] = 'Setzen der Mitglieder "'
-                              . implode(', ', $members)
-                              . '" gescheitert, da keine zugehörige Gruppe gefunden wurde.';
-                } elseif (empty($members)) {
-                    continue;
+                if (array_key_exists('description', $values)) {
+                    $description = trim((string) $values['description']);
+                    if (empty($description)) {
+                        $description = null;
+                    }
                 }
 
-                $users = array_merge($users, $members);
-                $userToGroups[$belongsTo]['users'] = $members;
-                array_unique($users);
-                continue;
-
-            } elseif (preg_match(self::PATTERN_REPO_IN_GROUP, $line)) {
-
-                $reposInGroup = $this->_getRepoInGroup($line);
-                if (empty($belongsTo) && !empty($reposInGroup)) {
-                    $errors[] = 'Setzen der Repositories "'
-                              . implode(', ', $reposInGroup['repos'])
-                              . '" gescheitert, da keine zugehörige Gruppe gefunden wurde.';
-                } elseif (empty($reposInGroup)) {
-                    continue;
-                }
-                $userToGroups[$belongsTo]['rights'] = $reposInGroup;
-                continue;
-
-            } elseif (preg_match(self::PATTERN_DESCRIPTION, $line)) {
-
-                $desc = $this->_getRepositoryDescription($line);
-                if (empty($belongsTo) && !empty($desc)) {
-                    $errors[] = 'Setzen der Beschreibung "'
-                              . $desc
-                              . '" gescheitert, da kein zugehöriges Repository gefunden wurde.';
-                } elseif (empty($desc)) {
-                    continue;
+                if (array_key_exists('owner', $values)) {
+                    $owner = trim((string) $values['owner']);
+                    if (empty($owner)) {
+                        $owner = null;
+                    }
                 }
 
-                $repos[$belongsTo]['desc'] = $desc;
-                continue;
-
-            } elseif (preg_match(self::PATTERN_OWNER, $line)) {
-
-                $owner = $this->_getOwner($line);
-                if (empty($belongsTo) && !empty($owner)) {
-                    $errors[] = 'Setzen des Besitzers "'
-                              . $owner
-                              . '" gescheitert, da kein zugehöriges Repository gefunden wurde.';
-                } elseif (empty($owner)) {
-                    continue;
-                }
-
-                $repos[$belongsTo]['owner'] = $owner;
-                continue;
-            }
-        }
-
-        $this->_setData(self::DATA_KEY_GROUPS, $groups);
-        $this->_setData(self::DATA_KEY_MAPPING, $userToGroups);
-        $this->_setData(self::DATA_KEY_REPOS, $repos);
-        $this->_setData(self::DATA_KEY_USERS, $users);
-
-        if (!empty($errors)) {
-            $this->_setData(self::DATA_KEY_ERRORS, $errors);
-        }
-
-        return self::IMPORT_FILE_SUCCESS;
-    }
-
-    /**
-     * extracting group name out of config line
-     *
-     * @param string $configLine
-     * @return string
-     */
-    protected function _getGroup($configLine)
-    {
-        return $this->_getMatch(self::PATTERN_GROUPS,$configLine);
-    }
-
-    /**
-     * extracting repository name out of config line
-     *
-     * @param string $configLine
-     * @return string
-     */
-    protected function _getRepository($configLine)
-    {
-        return $this->_getMatch(self::PATTERN_REPOSITORY,$configLine);
-    }
-
-    /**
-     * extracting members of a group out of config line
-     *
-     * @param string $configLine
-     * @return array
-     */
-    protected function _getMembers($configLine)
-    {
-        $members = $this->_getMatch(self::PATTERN_MEMBERS, $configLine);
-        if (!empty($members)) {
-            $members = explode(' ', $members);
-        }
-
-        if (empty($members)) {
-            $members = array();
-        }
-        return $members;
-    }
-
-    /**
-     * extracting repositories in a group out of config line
-     *
-     * @param string $configLine
-     * @return array
-     */
-    protected function _getRepoInGroup($configLine)
-    {
-        $matches = array();
-
-        $reposInGroup = array();
-        $isWriteable  = false;
-
-        preg_match(self::PATTERN_REPO_IN_GROUP, $configLine, $matches);
-        if (count($matches) !== 3) {
-            return null;
-        }
-
-        if ($matches[1] == 'writable') {
-            $isWriteable = true;
-        }
-
-        $reposInGroup = explode(' ', trim($matches[2]));
-
-        if (empty($reposInGroup)) {
-            return null;
-        }
-
-        return array(
-            'isWriteable' => intval($isWriteable),
-            'repos'       => $reposInGroup
-        );
-    }
-
-    /**
-     * extracting owner of a repository out of config line
-     *
-     * @param string $configLine
-     * @return string
-     */
-    protected function _getOwner($configLine)
-    {
-        return $this->_getMatch(self::PATTERN_OWNER, $configLine);
-    }
-
-    /**
-     * extracting description of a repository out of config line
-     *
-     * @param string $configLine
-     * @return string
-     */
-    protected function _getRepositoryDescription($configLine)
-    {
-        $description = $this->_getMatch(self::PATTERN_DESCRIPTION, $configLine);
-        if (empty($description)) {
-            return null;
-        }
-
-        return str_replace(array('"'),array(''),$description);
-    }
-
-    /**
-     * storing groups to db
-     *
-     * @return bool
-     */
-    protected function _addGroupsToDb ()
-    {
-        $groups = $this->_getData(self::DATA_KEY_GROUPS);
-        if (empty($groups)) {
-            return false;
-        }
-
-        $groups       = array_unique($groups);
-        $groupWithIds = array();
-        $model  = new Application_Model_Db_Gitosis_Groups();
-        foreach ($groups as $group) {
-
-            $id = $model->getByName($group);
-            if (!$id) {
-                $id = $model->insert(array('gitosis_group_name' => $group));
-            }
-
-            if (intval($id) > 0) {
-                $groupWithIds[$id] = $group;
-            }
-        }
-
-        $this->_setData(self::DATA_KEY_GROUPS, $groupWithIds);
-        return true;
-    }
-
-    /**
-     * storing users to db
-     *
-     * @return bool
-     */
-    protected function _addUsersToDb ()
-    {
-        $users = $this->_getData(self::DATA_KEY_USERS);
-        if (empty($users)) {
-            return false;
-        }
-
-        $users        = array_unique($users);
-        $usersWithIds = array();
-        $model  = new Application_Model_Db_Gitosis_Users();
-        foreach ($users as $user) {
-
-            $id = $model->getByEmail($user);
-            if (!$id) {
-                $id = $model->insert(
-                    array(
-                        'gitosis_user_email'    => $user,
-                        'gitosis_user_ssh_key'  => 'none',
-                        'gitosis_user_name'     => 'none'
-                    )
+                $this->_repositories[$repo] = array (
+                    'description'   => $description,
+                    'owner'         => $owner
                 );
             }
-
-            if (intval($id) > 0) {
-                $usersWithIds[$id] = $user;
-            }
         }
 
-        $this->_setData(self::DATA_KEY_USERS, $usersWithIds);
-        return true;
-    }
-
-    /**
-     * storing repositories to db
-     *
-     * @return bool
-     */
-    protected function _addReposToDb()
-    {
-        $reposWithId = array();
-        $repos = $this->_getData(self::DATA_KEY_REPOS);
-        if (empty($repos)) {
-            return false;
+        if (empty($this->_groups) && empty($this->_repositories) && empty($this->_users)) {
+            return self::IMPORT_NO_DATA;
+        } elseif (empty($this->_groups)) {
+            return self::IMPORT_NO_GROUPS;
+        } elseif (empty($this->_repositories)) {
+            return self::IMPORT_NO_REPOS;
+        } elseif (empty($this->_users)) {
+            return self::IMPORT_NO_USERS;
         }
-
-        $modelUsers = new Application_Model_Db_Gitosis_Users();
-        $modelRepos = new Application_Model_Db_Gitosis_Repositories();
-
-        foreach ($repos as $repo => $data) {
-
-            $repoId = $modelRepos->getByName($repo);
-            if (!($repoId === false)) {
-                continue;
-            }
-
-            $userId = $modelUsers->getByEmail($data['owner']);
-            if ($userId === false) {
-                $userId = null;
-            }
-
-            $description = $data['desc'];
-            if (empty($description)) {
-                $description = null;
-            }
-
-            $dbData = array(
-                'gitosis_repository_owner_id'       => $userId,
-                'gitosis_repository_name'           => $repo,
-                'gitosis_repository_description'    => $description
-            );
-
-            $repoId = $modelRepos->insert($dbData);
-            if ($repoId > 0) {
-                $reposWithId[$repoId] = $repo;
-            }
-        }
-
-        $this->_setData(self::DATA_KEY_REPOS, $reposWithId);
-        return true;
-    }
-
-    /**
-     * storing user to group mapping and group to repo mapping
-     *
-     * @return bool
-     */
-    protected function _addMappingRepoGroupUserToDb ()
-    {
-        $data = $this->_getData(self::DATA_KEY_MAPPING);
-        if (empty($data)) {
-            return false;
-        }
-
-        foreach ($data as $group => $mapping) {
-            if (!$this->_mapUsersToGroup($group, $mapping['users']) ||
-                !$this->_mapGroupsToRepos($group, $mapping['rights'])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * add users to group
-     *
-     * @param  int   $group
-     * @param  array $users
-     * @return bool
-     */
-    protected function _mapUsersToGroup ($group, $users)
-    {
-        if (empty($group) || empty($users)) {
-            return false;
-        }
-
-        $modelGroup     = new Application_Model_Db_Gitosis_Groups();
-        $modelUser      = new Application_Model_Db_Gitosis_Users();
-        $modelUserGroup = new Application_Model_Db_Gitosis_UsersGroups();
-
-        $groupId = $modelGroup->getByName($group);
-        if ($groupId <= 0) {
-            return false;
-        }
-
-        foreach ($users as $user) {
-            $userId = $modelUser->getByEmail($user);
-            if ($userId > 0) {
-                $modelUserGroup->addUserToGroup($groupId, $userId);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * map groups to repos and set rights
-     *
-     * @param  int   $group
-     * @param  array $rights
-     * @return bool
-     */
-    protected function _mapGroupsToRepos($group, $rights)
-    {
-        if (empty($group) || empty($rights)) {
-            return false;
-        }
-
-        if (!is_array($rights)) {
-            return false;
-        }
-
-        $modelGroup       = new Application_Model_Db_Gitosis_Groups();
-        $modelRepo        = new Application_Model_Db_Gitosis_Repositories();
-        $modelGroupRights = new Application_Model_Db_Gitosis_GroupRights();
-
-        $groupId = $modelGroup->getByName($group);
-        if ($groupId <= 0) {
-            return false;
-        }
-
-        $isWriteable = intval($rights['isWriteable']);
-        $repos       = $rights['repos'];
-
-        foreach ($repos as $repo) {
-
-            $repoId = $modelRepo->getByName($repo);
-            if ($repoId > 0) {
-
-                if ($modelGroupRights->exists($groupId, $repoId) &&
-                    $modelGroupRights->hasRights($groupId, $repoId, $isWriteable)) {
-                } elseif ($modelGroupRights->exists($groupId, $repoId) &&
-                          !$modelGroupRights->hasRights($groupId, $repoId, $isWriteable)) {
-
-                    $rightsId = $modelGroupRights->update(
-                        array ('is_writeable'          => $isWriteable),
-                        array(
-                            'gitosis_group_id = ?'      => $groupId,
-                            'gitosis_repository_id = ?' => $repoId,
-                        )
-                    );
-                } else {
-                    $rightsId = $modelGroupRights->insert(
-                        array(
-                            'gitosis_group_id'      => $groupId,
-                            'gitosis_repository_id' => $repoId,
-                            'is_writeable'          => $isWriteable
-                        )
-                    );
-                }
-            }
-
-        }
-
-        return true;
-    }
-
-    /**
-     * getting preg match
-     *
-     * @param string $pattern
-     * @param string $configLine
-     * @return string
-     */
-    protected function _getMatch($pattern, $configLine, $matchCount = 2)
-    {
-        $matches = array();
-        preg_match($pattern, $configLine, $matches);
-        if (count($matches) !== $matchCount) {
-            return null;
-        }
-        return trim($matches[$matchCount-1]);
-    }
-
-    /**
-     * @param string $key
-     * @param mixed $value
-     */
-    protected function _setData($key, $value)
-    {
-
-        if (!empty($key)) {
-
-            if (empty($this->_data)) {
-                $this->_data = array();
-            }
-
-            if (empty($value)) {
-                try {
-                    unset($this->_data[$key]);
-                } catch (Exception $e) { }
-            } else {
-                $this->_data[$key] = $value;
-            }
-        }
-    }
-
-    /**
-     * @param string $key
-     * @return mixed
-     */
-    protected function _getData($key)
-    {
-        if (is_array($this->_data) && array_key_exists($key, $this->_data)) {
-            return $this->_data[$key];
-        }
-        return null;
+        return self::IMPORT_OK;
     }
 }

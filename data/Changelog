@@ -1,5 +1,7 @@
 version     date            author      annotation
 ===============================================================================
+            15.05.2011      mbecker     - granting and revoking permissions for groups on repository
+
 alpha-1     14.05.2011      mbecker     - refactoring of CRUD-Controller
 
             13.05.2011      mbecker     - added licences controller

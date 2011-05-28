@@ -83,7 +83,7 @@ class GroupController extends MBit_Controller_Crud
     {
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
         if ($contextSwitch->getCurrentContext() !== 'json') {
-            $this->getHelper('Redirector')->gotoSimple('add');
+            $this->getHelper('Redirector')->gotoSimple('user');
         }
 
         $action  = $this->_getParam('operation');
