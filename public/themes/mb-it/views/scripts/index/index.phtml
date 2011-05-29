@@ -36,12 +36,26 @@ jQuery('document').ready(function (){
                 { email: email },
                 function (data) {
                     jQuery('#repos ul').empty();
-                    
+
                     var repositories = data.repositories;
+                    var liElement = '';
                     jQuery.each(repositories, function (index, value) {
-                        jQuery('#repos ul').append('<li>' + value.repo + '</li>');
-                        jQuery('#repos').show();
+                        liElement += '<li';
+                        if (value.write == true) {
+                            liElement += ' class="write">';
+                        } else {
+                            liElement += ' class="read">';
+                        }
+                        liElement += value.repo +
+                                     '<ul class="subList">' +
+                                        '<li><span class="title">URL:</span> ' + value.url + '</li>' +
+                                        '<li><span class="title">Beschreibung:</span> ' + value.desc + '</li>' +
+                                     '</ul>' +
+                                  '</li>';
+
                     });
+                    jQuery('#repos ul').append(liElement);
+                    jQuery('#repos').show();
                 }
             );
         }
@@ -55,5 +69,7 @@ jQuery('document').ready(function (){
 <?php echo $this->formSubmit('submit', 'Repositories laden'); ?>
 
 <div id="repos" style="display: none">
+    Die folgenden Repositories sind für dich freigeschaltet. Auf grau hinterlegte Repositories
+    hast du lediglich lesenden Zugriff, auf grün hinterlegte  Repositories hast du schreibenden Zugriff.
     <ul></ul>
 </div>

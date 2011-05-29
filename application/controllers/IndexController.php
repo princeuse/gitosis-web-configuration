@@ -46,10 +46,6 @@ class IndexController extends Zend_Controller_Action
      */
     public function indexAction()
     {
-        if (!Zend_Registry::isRegistered('admin_user')) {
-            $layout = Zend_Layout::getMvcInstance();
-            $layout->setLayout('plain');
-        }
         $this->view->messages = $this->_helper->FlashMessenger->getMessages();
         $this->_helper->FlashMessenger->clearMessages();
     }
@@ -63,6 +59,15 @@ class IndexController extends Zend_Controller_Action
 
         $layout = Zend_Layout::getMvcInstance();
         $layout->disableLayout();
+
+        $config = new Application_Model_Config();
+        $host   = $config->getConfigElement(Application_Model_Config::CONFIG_DATA_GITOSIS_ADMIN_URL)->getValue();
+        $user   = $config->getConfigElement(Application_Model_Config::CONFIG_DATA_GITOSIS_ADMIN_USER)->getValue();
+        if (!empty($host) && !empty($user) ) {
+            $gitosisUrl = $user . '@' . $host;
+        } else {
+            $gitosisUrl = '';
+        }
 
         $email = $this->_getParam('email');
         $repos = array();
@@ -79,9 +84,11 @@ class IndexController extends Zend_Controller_Action
                         $groupRepositories = $group->getRepositories();
                         if (!empty($groupRepositories)) {
                             foreach ($groupRepositories as $groupRepository) {
-                                $repos[] = array(
+                                $repos[] = $repoData = array(
                                     'repo'  => $groupRepository->getName(),
-                                    'write' => ($groupRepository->getGroupRight($group) == Application_Model_Gitosis_Repository::REPO_RIGHTS_WRITEABLE ? true : false)
+                                    'write' => ($groupRepository->getGroupRight($group) == Application_Model_Gitosis_Repository::REPO_RIGHTS_WRITEABLE ? true : false),
+                                    'url'   => $gitosisUrl . ':' . $groupRepository->getName(),
+                                    'desc'  => $groupRepository->getDescription()
                                 );
                             }
                         }

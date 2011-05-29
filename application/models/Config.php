@@ -35,6 +35,8 @@ class Application_Model_Config
      */
     const CONFIG_DATA_GITOSIS_ADMIN_REPO    = 'gitosis_admin_repo';
     const CONFIG_DATA_GITOSIS_ADMIN_SSH_KEY = 'gitosis_admin_key';
+    const CONFIG_DATA_GITOSIS_ADMIN_URL     = 'gitosis_admin_url';
+    const CONFIG_DATA_GITOSIS_ADMIN_USER    = 'gitosis_admin_user';
 
     /**
      * allowed keys for element config

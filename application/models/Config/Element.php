@@ -232,6 +232,7 @@ class Application_Model_Config_Element
         foreach ($data as $key => $value) {
             switch ($key) {
                 case 'config_id':
+                case 'config_code':
                 case 'id':
                     break;
 

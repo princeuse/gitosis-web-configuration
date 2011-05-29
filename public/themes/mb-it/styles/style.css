@@ -104,3 +104,11 @@ p{ line-height: 22px; margin-bottom: 22px; }
 
 p label { float: left; width: 125px; }
 fieldset label.title { display: block; font-weight: bold; margin-bottom: 20px; }
+
+#repos {padding-top: 25px; }
+#repos ul { margin: 0px; margin-top: 5px; list-style: disc inside none;}
+#repos ul.subList li { padding: 2px 15px; color: white; background:none;  }
+#repos ul li.write { padding: 2px 5px; color: white; background: none; background-color: green; }
+#repos ul li.read { padding: 2px 5px; color: white; background: none; background-color: grey; }
+#repos ul.subList { margin: 0px; margin-top: 5px; list-style: disc inside none;}
+#repos ul.subList li span.title { font-weight: bold; color: white; }

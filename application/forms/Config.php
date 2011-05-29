@@ -104,6 +104,8 @@ class Application_Form_Config extends MBit_Form
                             )
                         )
                     );
+        $formElement->setValue($configElement->getValue());
+
         return $formElement;
     }
 
@@ -133,6 +135,7 @@ class Application_Form_Config extends MBit_Form
                             )
                         );
         }
+        $formElement->setValue($configElement->getValue());
 
         return $formElement;
     }
@@ -171,6 +174,8 @@ class Application_Form_Config extends MBit_Form
                             )
                         )
                     );
+        $formElement->setValue($configElement->getValue());
+
         return $formElement;
     }
 
@@ -208,6 +213,8 @@ class Application_Form_Config extends MBit_Form
                             )
                         )
                     );
+        $formElement->setValue($configElement->getValue());
+        
         return $formElement;
     }
 }

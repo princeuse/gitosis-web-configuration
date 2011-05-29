@@ -44,6 +44,10 @@ class MBit_Controller_Plugin_Auth extends Zend_Controller_Plugin_Abstract
             $accessGranted = true;
         }
 
+        if ($request->getModuleName() == 'default' && $request->getControllerName() == 'index' && $request->getActionName() == 'load-repositories') {
+            $accessGranted = true;
+        }
+
         if ($request->getModuleName() == 'default' && $request->getControllerName() == 'auth'  && $request->getActionName() == 'login') {
             $accessGranted = true;
         }
@@ -67,6 +71,11 @@ class MBit_Controller_Plugin_Auth extends Zend_Controller_Plugin_Abstract
         if (!$accessGranted && !$auth->hasIdentity()) {
             $redirector = Zend_Controller_Action_HelperBroker::getStaticHelper('redirector');
             $redirector->direct('login', 'auth', 'default', array());
+        }
+
+        if (!Zend_Registry::isRegistered('admin_user')) {
+            $layout = Zend_Layout::getMvcInstance();
+            $layout->setLayout('plain');
         }
     }
 }
