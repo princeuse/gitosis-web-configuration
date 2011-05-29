@@ -37,7 +37,7 @@ class IndexController extends Zend_Controller_Action
     public function init()
     {
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
-        $contextSwitch->addActionContext('loadRepositories', 'json')
+        $contextSwitch->addActionContext('load-repositories', 'json')
                       ->initContext();
     }
 
@@ -60,5 +60,35 @@ class IndexController extends Zend_Controller_Action
         if ($contextSwitch->getCurrentContext() !== 'json') {
             $this->getHelper('Redirector')->gotoSimple('index');
         }
+
+        $layout = Zend_Layout::getMvcInstance();
+        $layout->disableLayout();
+
+        $email = $this->_getParam('email');
+        $repos = array();
+        if (!empty($email)) {
+            $userModel = new Application_Model_Gitosis_User();
+            try {
+                $userModel->loadByMail($email);
+            } catch (Exception $e) {
+            }
+            if ($userModel->getId()) {
+                $groups = $userModel->getGroups();
+                if (!empty($groups)) {
+                    foreach ($groups as $group) {
+                        $groupRepositories = $group->getRepositories();
+                        if (!empty($groupRepositories)) {
+                            foreach ($groupRepositories as $groupRepository) {
+                                $repos[] = array(
+                                    'repo'  => $groupRepository->getName(),
+                                    'write' => ($groupRepository->getGroupRight($group) == Application_Model_Gitosis_Repository::REPO_RIGHTS_WRITEABLE ? true : false)
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $this->view->repositories = $repos;
     }
 }

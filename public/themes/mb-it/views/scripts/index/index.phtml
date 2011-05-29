@@ -24,4 +24,36 @@
  * @package   View
  */
 ?>
+<?php $this->headScript()->captureStart(); ?>
+jQuery('document').ready(function (){
+    jQuery('#submit').bind('click', function(){
+        var email = jQuery('#email').val();
+        if(email.length > 0) {
+
+            var baseHref = jQuery('base').attr('href');
+            jQuery.getJSON(
+                baseHref + '/index/load-repositories/format/json',
+                { email: email },
+                function (data) {
+                    jQuery('#repos ul').empty();
+                    
+                    var repositories = data.repositories;
+                    jQuery.each(repositories, function (index, value) {
+                        jQuery('#repos ul').append('<li>' + value.repo + '</li>');
+                        jQuery('#repos').show();
+                    });
+                }
+            );
+        }
+    });
+});
+<?php $this->headScript()->captureEnd(); ?>
 <?php echo $this->partial('messages.phtml', array('messages' => $this->messages)); ?>
+
+<?php echo $this->formLabel('email', 'E-Mail:'); ?>&nbsp;
+<?php echo $this->formText('email'); ?>&nbsp;
+<?php echo $this->formSubmit('submit', 'Repositories laden'); ?>
+
+<div id="repos" style="display: none">
+    <ul></ul>
+</div>
