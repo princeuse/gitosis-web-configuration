@@ -33,17 +33,25 @@ class Application_Model_Config
     /**
      * defining possible configuration strings
      */
-    const CONFIG_DATA_GITOSIS_ADMIN = 'gitosis_admin_path';
+    const CONFIG_DATA_GITOSIS_ADMIN_REPO    = 'gitosis_admin_repo';
+    const CONFIG_DATA_GITOSIS_ADMIN_SSH_KEY = 'gitosis_admin_key';
 
     /**
-     * @var Application_Model_Db_Config
+     * allowed keys for element config
+     *
+     * @var array
      */
-    protected $_model = null;
+    protected $_elementKeys = null;
 
     /**
      * @var array
      */
-    protected $_data = null;
+    protected $_elements = null;
+
+    /**
+     * @var bool
+     */
+    protected $_hasChanges = false;
 
     /**
      * constructor
@@ -52,7 +60,10 @@ class Application_Model_Config
      */
     public function __construct ()
     {
-        $this->_data = array();
+        $refl = new ReflectionClass('Application_Model_Config');
+        $this->_elementKeys = $refl->getConstants();
+
+        $this->_elements = array();
         $this->_loadConfig();
     }
 
@@ -67,47 +78,72 @@ class Application_Model_Config
     }
 
     /**
-     * getting config data
+     * getting config element
      *
      * @param string $key
+     * @return Application_Model_Config_Element
      */
-    public function getData($key)
+    public function getConfigElement($key)
     {
-        if (array_key_exists($key, $this->_data)) {
-            return $this->_data[$key]['value'];
+        if (array_key_exists($key, $this->_elements)) {
+            return $this->_elements[$key];
+        } elseif (in_array($key, $this->_elementKeys)) {
+            $this->_elements[$key] = new Application_Model_Config_Element();
+            $this->_elements[$key]->load($key);
+            return $this->_elements[$key];
         }
         return null;
     }
 
     /**
-     * setting config data
+     * getting all config elements
      *
-     * @param string $key
-     * @param string $value
+     * @return array
+     */
+    public function getConfigElements()
+    {
+        return $this->_elements;
+    }
+
+    /**
+     * setting config element
+     *
+     * @param string|array|Application_Model_Config_Element $configElement
      * @return Application_Model_Config
      */
-    public function setData($key, $value)
+    public function setElement($configElement)
     {
-        $key   = (string) $key;
-        $value = (string) $value;
-
-        if (empty($key) || empty($value)) {
-            return $this;
+        if ($configElement instanceof Application_Model_Config_Element) {
+            $code = $configElement->getCode();
+            if (in_array($code, $this->_elementKeys)) {
+                $this->_hasChanges = true;
+                $this->_elements[$code] = $configElement;
+            }
+        } elseif (is_array($configElement) && array_key_exists('code', $configElement) && in_array($configElement['code'], $this->_elementKeys)) {
+            $this->_elements[$code] = new Application_Model_Config_Element();
+            $this->_elements[$code]->setData($configElement);
+            $this->_hasChanges = true;
+        } else {
+            $code = trim((string) $configElement);
+            if (!empty($code)) {
+                $this->_elements[$code] = new Application_Model_Config_Element();
+                $this->_elements[$code]->load($code);
+                $this->_hasChanges = true;
+            }
         }
-
-        if (!array_key_exists($key, $this->_data)) {
-            $this->_data[$key] = array(
-                'hasChanged' => true,
-                'value'      => $value
-            );
-        } elseif ($this->_data[$key]['value'] !== $value) {
-            $this->_data[$key] = array(
-                'hasChanged' => true,
-                'value'      => $value
-            );
-        }
-
         return $this;
+    }
+
+    /**
+     * setting config elements
+     *
+     * @param array $data
+     * @return Application_Model_Config
+     */
+    public function setElements($data)
+    {
+        Zend_Debug::dump($data, '$data', true);
+        die;
     }
 
     /**
@@ -115,22 +151,17 @@ class Application_Model_Config
      */
     protected function _loadConfig ()
     {
-        $model = $this->_getModel();
-        $data  = $model->fetchAll();
+        $model = new Application_Model_Db_Config();
+        $data  = $model->getCodes();
 
         if (empty($data)) {
             return;
         }
 
-        foreach ($data as $configPair) {
-
-            $key   = trim((string) $configPair->{'config_name'});
-            $value = trim((string) $configPair->{'config_value'});
-
-            $this->_data[$key] = array(
-                'hasChanged' => false,
-                'value'      => $value
-            );
+        foreach ($data as $row) {
+            $code = trim((string) $row['config_code']);
+            $this->_elements[$code] = new Application_Model_Config_Element();
+            $this->_elements[$code]->load($code);
         }
     }
 
@@ -139,28 +170,12 @@ class Application_Model_Config
      */
     protected function _writeConfig ()
     {
-        if (empty($this->_data)) {
+        if (empty($this->_elements) || !$this->_hasChanges) {
             return;
         }
 
-        $model = $this->_getModel();
-        foreach ($this->_data as $key => $valueData) {
-            if ($valueData['hasChanged']) {
-                $model->save($key, $valueData['value']);
-            }
+        foreach ($this->_elements as $element) {
+            $element->save();
         }
-    }
-
-    /**
-     * getting database model
-     *
-     * @return Application_Model_Db_Config
-     */
-    protected function _getModel()
-    {
-        if ($this->_model === null) {
-            $this->_model = new Application_Model_Db_Config();
-        }
-        return $this->_model;
     }
 }

@@ -41,43 +41,25 @@ class Application_Model_Db_Config extends Zend_Db_Table_Abstract
     protected $_primary = 'config_id';
 
     /**
-     * storing configuration to database
-     *
-     * @param string $key
-     * @param string $value
-     * @return bool
+     * @param string $code
+     * @return array
      */
-    public function save ($key, $value)
+    public function getByCode($code)
     {
-        $key   = (string) $key;
-        $value = (string) $value;
-
-        if (empty($key) || empty($value)) {
-            return false;
-        }
-
-        $row = $this->fetchRow(array(
-           'config_name = ?'    => $key,
-        ));
-
+        $row = $this->fetchRow(array('config_code = ?' => $code));
         if (empty($row)) {
-            return (bool) $this->insert(
-                array(
-                    'config_name'   => $key,
-                    'config_value'  => $value
-                )
-            );
-        } elseif ($row->{'config_value'} !== $value) {
-            return (bool) $this->update(
-                array(
-                    'config_value'  => $value
-                ),
-                array (
-                    'config_name = ?' => $key
-                )
-            );
+            return null;
         }
-        return false;
+        return $row->toArray();
     }
 
+    public function getCodes()
+    {
+        $select = $this->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
+        $rows = $this->fetchAll($select);
+        if ($rows->count() > 0) {
+            return $rows->toArray();
+        }
+        return null;
+    }
 }
