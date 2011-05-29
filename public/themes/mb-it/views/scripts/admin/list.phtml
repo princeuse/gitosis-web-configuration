@@ -1,0 +1,84 @@
+<?php
+/**
+ * MB-it Gitosis Web Configuration
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  - Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  - Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  - Neither the name MB-it nor the names of its contributors may be used to
+ *    endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
+ * @author    Marc Becker <m.becker@mb-it.com>
+ * @category  MB-it
+ * @package   View
+ */
+?>
+<div id="toolbar">
+    <a href="<?php echo $this->url(array('controller' => 'admin', 'action' => 'create'), null, true) ?>">
+        <img src="<?php echo $this->theme()->getUrl('/images/icons/user_add.png') ?>" alt="Benutzer erstellen" title="Benutzer erstellen" />
+        neuen Benutzer erstellen
+    </a>
+</div>
+
+<h1>System-Benutzer</h1>
+
+<?php
+    $messages = $this->messages;
+    if (!empty($messages)):
+?>
+    <div id="messages">
+        <ul>
+            <?php foreach ($messages as $message): ?>
+                <li><?php echo $this->escape($message); ?></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+<?php endif; ?>
+
+<?php if ($this->pager->count() < 1): ?>
+    keine Benutzer im System erfasst
+<?php else: ?>
+    <table width="100%">
+        <thead>
+            <tr>
+                <th width="40%">Login</th>
+                <th width="40%">E-Mail</th>
+                <th width="20%">&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($this->pager as $user): ?>
+            <tr style="background-color:<?php echo $this->cycle(array("#FFFFFF",
+                                                                      "#F0F0F0"))
+                                                        ->next(); ?>">
+                <td><?php echo $this->escape($user->getLogin()); ?></td>
+                <td><?php echo $this->escape($user->getEmail()); ?></td>
+                <td class="center">
+                    <a href="<?php echo $this->url(array('action' => 'edit', 'controller' => 'admin', 'id' => $user->getId()), null, true); ?>">
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/user_edit.png'); ?>" alt="Bearbeiten" title="Bearbeiten" />
+                    </a>
+                    <a href="<?php echo $this->url(array('action' => 'delete', 'controller' => 'admin', 'id' => $user->getId()), null, true); ?>">
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/user_delete.png'); ?>" alt="Löschen" title="Löschen" />
+                    </a>
+                    <a href="<?php echo $this->url(array('action' => 'send-password', 'controller' => 'admin', 'id' => $user->getId()), null, true); ?>">
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/key_go.png'); ?>" alt="Passwort zurück setzen" title="Passwort zurück setzen" />
+                    </a>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <?php echo $this->pager; ?>
+<?php endif; ?>

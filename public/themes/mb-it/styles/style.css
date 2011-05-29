@@ -97,8 +97,18 @@ p{ line-height: 22px; margin-bottom: 22px; }
 .links h3 { margin: 8px 0; }
 
 #toolbar { float: right; }
+#accountLink { float: left; padding: 0px; padding-top: 10px; padding-left: 10px;}
+#title { margin-bottom: 22px; margin-left: 250px; font-size: 28px; font-weight: normal; color: #81ab57; }
 
 #ajaxLoader { text-align: center; position: absolute; left: 50%; top: 40%; margin-left: -50px; margin-top: -50px; }
 
 p label { float: left; width: 125px; }
 fieldset label.title { display: block; font-weight: bold; margin-bottom: 20px; }
+
+#repos {padding-top: 25px; }
+#repos ul { margin: 0px; margin-top: 5px; list-style: disc inside none;}
+#repos ul.subList li { padding: 2px 15px; color: white; background:none;  }
+#repos ul li.write { padding: 2px 5px; color: white; background: none; background-color: green; }
+#repos ul li.read { padding: 2px 5px; color: white; background: none; background-color: grey; }
+#repos ul.subList { margin: 0px; margin-top: 5px; list-style: disc inside none;}
+#repos ul.subList li span.title { font-weight: bold; color: white; }

@@ -1,0 +1,47 @@
+<?php
+/**
+ * MB-it Gitosis Web Configuration
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  - Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  - Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  - Neither the name MB-it nor the names of its contributors may be used to
+ *    endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
+ * @author    Marc Becker <m.becker@mb-it.com>
+ * @category  MB-it
+ * @package   View
+ */
+?>
+<div id="accountLink">
+    <?php if (Zend_Registry::isRegistered('admin_user')): ?>
+        <a href="<?php echo $this->url(array('module' => 'default', 'controller' => 'admin', 'action' => 'account')); ?>">
+            <img src="<?php echo $this->theme()->getUrl('/images/icons/user.png') ?>" />
+            <?php
+                $user = Zend_Registry::get('admin_user');
+                echo $this->escape($user->getLogin());
+            ?>
+        </a>
+        <span class="separator">&nbsp|&nbsp</span>
+        <a href="<?php echo $this->url(array('module' => 'default', 'controller' => 'auth', 'action' => 'logout')); ?>">
+            <img src="<?php echo $this->theme()->getUrl('/images/icons/logout.png') ?>" alt="Logout" title="Logout" />
+            Logout
+        </a>
+    <?php else: ?>
+        <a href="<?php echo $this->url(array('module' => 'default', 'controller' => 'auth', 'action' => 'login')); ?>">
+            <img src="<?php echo $this->theme()->getUrl('/images/icons/logout.png') ?>" alt="Login" title="Login" />
+            Login
+        </a>
+    <?php endif; ?>
+</div>

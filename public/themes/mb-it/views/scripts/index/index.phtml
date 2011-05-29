@@ -24,14 +24,52 @@
  * @package   View
  */
 ?>
-<h1>Gitosis Web Configuration</h1>
+<?php $this->headScript()->captureStart(); ?>
+jQuery('document').ready(function (){
+    jQuery('#submit').bind('click', function(){
+        var email = jQuery('#email').val();
+        if(email.length > 0) {
 
-<?php if ($this->repositories->count() > 0): ?>
-    <div id="repositories">
-            <ul class="repositories">
-            <?php foreach ($this->repositories as $repository): ?>
-                <li><span>Repository:</span> <?php echo $this->escape($repository->{'gitosis_repository_name'}); ?></li>
-            <?php endforeach; ?>
-            </ul>
-    </div>
-<?php endif; ?>
+            var baseHref = jQuery('base').attr('href');
+            jQuery.getJSON(
+                baseHref + '/index/load-repositories/format/json',
+                { email: email },
+                function (data) {
+                    jQuery('#repos ul').empty();
+
+                    var repositories = data.repositories;
+                    var liElement = '';
+                    jQuery.each(repositories, function (index, value) {
+                        liElement += '<li';
+                        if (value.write == true) {
+                            liElement += ' class="write">';
+                        } else {
+                            liElement += ' class="read">';
+                        }
+                        liElement += value.repo +
+                                     '<ul class="subList">' +
+                                        '<li><span class="title">URL:</span> ' + value.url + '</li>' +
+                                        '<li><span class="title">Beschreibung:</span> ' + value.desc + '</li>' +
+                                     '</ul>' +
+                                  '</li>';
+
+                    });
+                    jQuery('#repos ul').append(liElement);
+                    jQuery('#repos').show();
+                }
+            );
+        }
+    });
+});
+<?php $this->headScript()->captureEnd(); ?>
+<?php echo $this->partial('messages.phtml', array('messages' => $this->messages)); ?>
+
+<?php echo $this->formLabel('email', 'E-Mail:'); ?>&nbsp;
+<?php echo $this->formText('email'); ?>&nbsp;
+<?php echo $this->formSubmit('submit', 'Repositories laden'); ?>
+
+<div id="repos" style="display: none">
+    Die folgenden Repositories sind für dich freigeschaltet. Auf grau hinterlegte Repositories
+    hast du lediglich lesenden Zugriff, auf grün hinterlegte  Repositories hast du schreibenden Zugriff.
+    <ul></ul>
+</div>

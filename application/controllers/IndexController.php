@@ -30,16 +30,72 @@
  */
 class IndexController extends Zend_Controller_Action
 {
+
     /**
-     * dashboard
-     *
-     * showing available repositories
+     * initialise json action(s)
+     */
+    public function init()
+    {
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        $contextSwitch->addActionContext('load-repositories', 'json')
+                      ->initContext();
+    }
+
+    /**
+     * showing messages
      */
     public function indexAction()
     {
-        $repositoryModel = new Application_Model_Db_Gitosis_Repositories();
-        $repositories = $repositoryModel->fetchAll(null, 'gitosis_repository_name ASC');
+        $this->view->messages = $this->_helper->FlashMessenger->getMessages();
+        $this->_helper->FlashMessenger->clearMessages();
+    }
 
-        $this->view->repositories = $repositories;
+    public function loadRepositoriesAction()
+    {
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        if ($contextSwitch->getCurrentContext() !== 'json') {
+            $this->getHelper('Redirector')->gotoSimple('index');
+        }
+
+        $layout = Zend_Layout::getMvcInstance();
+        $layout->disableLayout();
+
+        $config = new Application_Model_Config();
+        $host   = $config->getConfigElement(Application_Model_Config::CONFIG_DATA_GITOSIS_ADMIN_URL)->getValue();
+        $user   = $config->getConfigElement(Application_Model_Config::CONFIG_DATA_GITOSIS_ADMIN_USER)->getValue();
+        if (!empty($host) && !empty($user) ) {
+            $gitosisUrl = $user . '@' . $host;
+        } else {
+            $gitosisUrl = '';
+        }
+
+        $email = $this->_getParam('email');
+        $repos = array();
+        if (!empty($email)) {
+            $userModel = new Application_Model_Gitosis_User();
+            try {
+                $userModel->loadByMail($email);
+            } catch (Exception $e) {
+            }
+            if ($userModel->getId()) {
+                $groups = $userModel->getGroups();
+                if (!empty($groups)) {
+                    foreach ($groups as $group) {
+                        $groupRepositories = $group->getRepositories();
+                        if (!empty($groupRepositories)) {
+                            foreach ($groupRepositories as $groupRepository) {
+                                $repos[] = $repoData = array(
+                                    'repo'  => $groupRepository->getName(),
+                                    'write' => ($groupRepository->getGroupRight($group) == Application_Model_Gitosis_Repository::REPO_RIGHTS_WRITEABLE ? true : false),
+                                    'url'   => $gitosisUrl . ':' . $groupRepository->getName(),
+                                    'desc'  => $groupRepository->getDescription()
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $this->view->repositories = $repos;
     }
 }

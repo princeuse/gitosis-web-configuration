@@ -36,7 +36,15 @@ class ConfigController extends Zend_Controller_Action
      */
     public function indexAction ()
     {
-        $model = new Application_Model_Config();
-        $model->setData(Application_Model_Config::CONFIG_DATA_GITOSIS_ADMIN, 'path/to/gitosis-admin/repo');
+        $form = new Application_Form_Config();
+
+        if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
+            $model = new Application_Model_Config();
+            $model->setFormData(
+                $form->getValidValues($this->getRequest()->getPost())
+            );
+        }
+
+        $this->view->form = $form;
     }
 }

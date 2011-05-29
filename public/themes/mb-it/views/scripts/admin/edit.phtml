@@ -21,45 +21,13 @@
  * @copyright Copyright (c) 2011-2020 MB-it (http://www.mb-it.com)
  * @author    Marc Becker <m.becker@mb-it.com>
  * @category  MB-it
- * @package   DB-Models
+ * @package   View
  */
+?>
+<div id="toolbar">
+    <?php echo $this->partial('backButton.phtml'); ?>
+</div>
 
-/**
- * @category MB-it
- * @package  DB-Models
- */
-class Application_Model_Db_Config extends Zend_Db_Table_Abstract
-{
-    /**
-     * @var string
-     */
-    protected $_name = 'gitosis_web_configuration';
+<h1>Benutzer bearbeiten</h1>
 
-    /**
-     * @var string
-     */
-    protected $_primary = 'config_id';
-
-    /**
-     * @param string $code
-     * @return array
-     */
-    public function getByCode($code)
-    {
-        $row = $this->fetchRow(array('config_code = ?' => $code));
-        if (empty($row)) {
-            return null;
-        }
-        return $row->toArray();
-    }
-
-    public function getCodes()
-    {
-        $select = $this->select(Zend_Db_Table::SELECT_WITH_FROM_PART);
-        $rows = $this->fetchAll($select);
-        if ($rows->count() > 0) {
-            return $rows->toArray();
-        }
-        return null;
-    }
-}
+<?php echo $this->form; ?>

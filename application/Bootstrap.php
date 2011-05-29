@@ -80,6 +80,43 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
     }
 
     /**
+     * loading navigation
+     *
+     * @return Zend_Navigation
+     */
+    protected function _initNavigation()
+    {
+        $navConfig  = realpath(APPLICATION_PATH . DIRECTORY_SEPARATOR . 'configs') . DIRECTORY_SEPARATOR . 'navigation.ini';
+        $iniConfig  = new Zend_Config_Ini($navConfig);
+        $navigation = new Zend_Navigation($iniConfig);
+
+        $view = $this->getResource('view');
+        $view->navigation($navigation);
+
+        return $navigation;
+    }
+
+    /**
+     * Controller-Plugins in Front-Controller registrieren
+     *
+     * @return Zend_Controller_Front
+     */
+    protected function _initControllerPlugins ()
+    {
+        $this->bootstrap('autoload');
+        $this->bootstrap('frontController');
+
+        /* @var $front Zend_Controller_Front */
+        $front = $this->getResource('frontController');
+
+        if (PHP_SAPI !== 'cli') {
+            $front->registerPlugin(new MBit_Controller_Plugin_Auth(), 1);
+        }
+
+        return $front;
+    }
+
+    /**
      * setting timezone and language
      *
      * @return Zend_Locale

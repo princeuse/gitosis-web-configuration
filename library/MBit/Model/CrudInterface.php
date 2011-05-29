@@ -38,6 +38,11 @@ interface MBit_Model_CrudInterface
     public function getPaginatorSelect();
 
     /**
+     * loading data out of database
+     */
+    public function load();
+
+    /**
      * setting data
      *
      * @param array

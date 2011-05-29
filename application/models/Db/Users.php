@@ -28,7 +28,7 @@
  * @category MB-it
  * @package  DB-Models
  */
-class Application_Model_Db_Users extends Zend_Db_Table_Abstract
+class Application_Model_Db_Users extends MBit_Db_Table_Abstract
 {
     /**
      * @var string
