@@ -26,6 +26,8 @@ CREATE TABLE `admin_users` (
   `admin_id` int(15) unsigned NOT NULL AUTO_INCREMENT,
   `admin_login` varchar(200) NOT NULL,
   `admin_password` varchar(200) NOT NULL,
+  `admin_email` varchar(200) NOT NULL,
+  `admin_cookie` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`admin_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -126,11 +128,14 @@ DROP TABLE IF EXISTS `gitosis_web_configuration`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `gitosis_web_configuration` (
   `config_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `config_name` varchar(200) COLLATE utf8_bin NOT NULL,
-  `config_value` text COLLATE utf8_bin NOT NULL,
-  PRIMARY KEY (`config_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
+  `config_code` varchar(200) COLLATE utf8_bin NOT NULL,
+  `config_label` varchar(200) COLLATE utf8_bin NOT NULL,
+  `config_type` varchar(200) COLLATE utf8_bin NOT NULL,
+  `config_value` text COLLATE utf8_bin,
+  `config_is_required` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`config_id`),
+  UNIQUE KEY `IDX_CONFIG_CODE` (`config_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -142,4 +147,4 @@ CREATE TABLE `gitosis_web_configuration` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2011-05-08 14:04:02
+-- Dump completed on 2011-05-29 20:27:40
