@@ -24,4 +24,10 @@
  * @package   View
  */
 ?>
-<?php echo $this->partial('messages.phtml', array('messages' => $this->messages)); ?>
+<div id="toolbar">
+    <?php echo $this->partial('backButton.phtml'); ?>
+</div>
+
+<h1>Deine Konto-Daten</h1>
+
+<?php echo $this->form; ?>

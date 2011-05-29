@@ -30,16 +30,35 @@
  */
 class IndexController extends Zend_Controller_Action
 {
+
     /**
-     * dashboard
-     *
-     * showing available repositories
+     * initialise json action(s)
+     */
+    public function init()
+    {
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        $contextSwitch->addActionContext('loadRepositories', 'json')
+                      ->initContext();
+    }
+
+    /**
+     * showing messages
      */
     public function indexAction()
     {
-        $repositoryModel = new Application_Model_Db_Gitosis_Repositories();
-        $repositories = $repositoryModel->fetchAll(null, 'gitosis_repository_name ASC');
+        if (!Zend_Registry::isRegistered('admin_user')) {
+            $layout = Zend_Layout::getMvcInstance();
+            $layout->setLayout('plain');
+        }
+        $this->view->messages = $this->_helper->FlashMessenger->getMessages();
+        $this->_helper->FlashMessenger->clearMessages();
+    }
 
-        $this->view->repositories = $repositories;
+    public function loadRepositoriesAction()
+    {
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        if ($contextSwitch->getCurrentContext() !== 'json') {
+            $this->getHelper('Redirector')->gotoSimple('index');
+        }
     }
 }

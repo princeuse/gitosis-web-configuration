@@ -36,11 +36,13 @@ class Application_Form_Admin_User extends MBit_Form
     public function init()
     {
         $id = new Zend_Form_Element_Hidden('id');
-        $id->setDecorators($this->_elementDecoratorNoTags);
+        $id->setDecorators($this->_elementDecoratorNoTags)
+           ->setOrder(10);
         $this->addElement($id);
 
         $name = new Zend_Form_Element_Text('login');
         $name->setDecorators($this->_elementDecoratorParagraph)
+             ->setOrder(20)
              ->setFilters($this->_standardFilters)
              ->setLabel('Login')
              ->setAllowEmpty(false)
@@ -80,6 +82,7 @@ class Application_Form_Admin_User extends MBit_Form
 
         $email = new Zend_Form_Element_Text('email');
         $email->setDecorators($this->_elementDecoratorParagraph)
+              ->setOrder(30)
               ->setFilters($this->_standardFilters)
               ->setLabel('E-Mail')
               ->setAllowEmpty(false)
@@ -123,11 +126,13 @@ class Application_Form_Admin_User extends MBit_Form
 
         $submit = new Zend_Form_Element_Submit('submit');
         $submit->setDecorators($this->_elementDecoratorClear)
+               ->setOrder(40)
                ->setLabel('Speichern');
         $this->addElement($submit);
 
         $reset = new Zend_Form_Element_Reset('reset');
         $reset->setDecorators($this->_elementDecoratorClear)
+              ->setOrder(50)
               ->setLabel('zurück setzen');
         $this->addElement($reset);
     }

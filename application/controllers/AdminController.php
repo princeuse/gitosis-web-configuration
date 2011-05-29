@@ -32,6 +32,9 @@
 class AdminController extends MBit_Controller_Crud
 {
 
+    /**
+     * reset user password by admin
+     */
     public function sendPasswordAction()
     {
         $userId = $this->_getParam('id');
@@ -54,6 +57,34 @@ class AdminController extends MBit_Controller_Crud
             }
         }
         $this->_redirectToList();
+    }
+
+    public function accountAction()
+    {
+        $form = new Application_Form_Admin_Account();
+
+        $identity = Zend_Auth::getInstance()->getIdentity();
+        $user = new Application_Model_Admin_User();
+        $user->load($identity->{'admin_id'});
+        $form->populate($user->getData());
+
+        if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
+            $user->setEmail($this->_getParam('email'));
+            $password = trim((string) $this->_getParam('password', ''));
+            if (!empty($password)) {
+                $user->setPassword($password);
+            }
+
+            if ($user->save()) {
+                $message = "Ihre Daten wurden erfolgreich gespeichert.";
+            } else {
+                $message = "Die Änderungen konnten nicht gespeichert werden.";
+            }
+            $this->_helper->FlashMessenger->addMessage($message);
+            $this->_redirect('/');
+        }
+
+        $this->view->form = $form;
     }
 
     /**

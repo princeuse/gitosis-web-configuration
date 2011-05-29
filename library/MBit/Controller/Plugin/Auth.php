@@ -39,23 +39,34 @@ class MBit_Controller_Plugin_Auth extends Zend_Controller_Plugin_Abstract
      */
     public function preDispatch(Zend_Controller_Request_Abstract $request)
     {
+        $accessGranted = false;
+        if ($request->getModuleName() == 'default' && $request->getControllerName() == 'index' && $request->getActionName() == 'index') {
+            $accessGranted = true;
+        }
+
+        if ($request->getModuleName() == 'default' && $request->getControllerName() == 'auth'  && $request->getActionName() == 'login') {
+            $accessGranted = true;
+        }
+
+        if ($request->getModuleName() == 'default' && $request->getControllerName() == 'license'  && $request->getActionName() == 'index') {
+            $accessGranted = true;
+        }
+
+        if ($request->getModuleName() == 'default' && $request->getControllerName() == 'error'  && $request->getActionName() == 'error') {
+            $accessGranted = true;
+        }
+
         $auth = Zend_Auth::getInstance();
-
-        if (!$auth->hasIdentity()) {
-
-            if (($request->getModuleName() == 'default' && $request->getControllerName() == 'index' && $request->getActionName() == 'index') ||
-                ($request->getModuleName() == 'default' && $request->getControllerName() == 'auth'  && $request->getActionName() == 'login') ||
-                ($request->getModuleName() == 'default' && $request->getControllerName() == 'license'  && $request->getActionName() == 'index')) {
-                return;
-            }
-
-            $redirector = Zend_Controller_Action_HelperBroker::getStaticHelper('redirector');
-            $redirector->direct('login', 'auth', 'default', array());
-        } else {
+        if ($auth->hasIdentity()) {
             $identity = $auth->getIdentity();
             $userModel = new Application_Model_Admin_User();
             $userModel->load($identity->{'admin_id'});
             Zend_Registry::set('admin_user', $userModel);
+        }
+
+        if (!$accessGranted && !$auth->hasIdentity()) {
+            $redirector = Zend_Controller_Action_HelperBroker::getStaticHelper('redirector');
+            $redirector->direct('login', 'auth', 'default', array());
         }
     }
 }
