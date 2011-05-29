@@ -71,6 +71,9 @@
                     <a href="<?php echo $this->url(array('action' => 'delete', 'controller' => 'admin', 'id' => $user->getId()), null, true); ?>">
                         <img src="<?php echo $this->theme()->getUrl('/images/icons/user_delete.png'); ?>" alt="Löschen" title="Löschen" />
                     </a>
+                    <a href="<?php echo $this->url(array('action' => 'send-password', 'controller' => 'admin', 'id' => $user->getId()), null, true); ?>">
+                        <img src="<?php echo $this->theme()->getUrl('/images/icons/key_go.png'); ?>" alt="Passwort zurück setzen" title="Passwort zurück setzen" />
+                    </a>
                 </td>
             </tr>
             <?php endforeach; ?>

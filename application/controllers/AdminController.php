@@ -31,6 +31,45 @@
  */
 class AdminController extends MBit_Controller_Crud
 {
+
+    public function sendPasswordAction()
+    {
+        $userId = $this->_getParam('id');
+        if (intval($userId) > 0) {
+            $userModel = new Application_Model_Admin_User();
+            $userModel->load($userId);
+            if ($userModel->getId()) {
+                $mail = new Application_Model_Mail_Password();
+                $mail->setUser($userModel)
+                     ->setPasswordAsForgotten(true);
+
+                $mail->send();
+                if ($userModel->save()) {
+                    $message = "Das Passwort wurde erfolgreich zurück gesetzt und versendet";
+                } else {
+                    $message = "Das Passwort konnte nicht zurück gesetzt und versendet werden";
+                }
+
+                $this->_helper->FlashMessenger->addMessage($message);
+            }
+        }
+        $this->_redirectToList();
+    }
+
+    /**
+     * sending new password via mail after creation of a new user
+     */
+    protected function _beforeCreateSave()
+    {
+        $mail = new Application_Model_Mail_Password();
+        $mail->setUser($this->_model);
+        $mail->setPasswordAsForgotten(false);
+        $mail->send();
+    }
+
+    /**
+     * @return Application_Form_Admin_User
+     */
     protected function _getForm()
     {
         if (empty($this->_form)) {
@@ -39,6 +78,11 @@ class AdminController extends MBit_Controller_Crud
         return $this->_form;
     }
 
+    /**
+     * getting url to list action
+     *
+     * @return string
+     */
     protected function _getListUrl()
     {
         return $this->view->url(
@@ -51,6 +95,9 @@ class AdminController extends MBit_Controller_Crud
         );
     }
 
+    /**
+     * @return Application_Model_Admin_User
+     */
     protected function _getModel()
     {
         if (empty($this->_model)) {

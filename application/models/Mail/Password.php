@@ -71,12 +71,10 @@ class Application_Model_Mail_Password extends Application_Model_Mail
     }
 
     /**
-     * @param string $receiverMail
-     * @param string $receiverName
      * @param Zend_Mail_Transport_Abstract $transport
      * @return Application_Model_Mail_Password
      */
-    public function sendPassword()
+    public function send($transport = null)
     {
         if (empty($this->_user)) {
             throw new MBit_Exception('user model has to be set for sending password mails');
@@ -88,8 +86,8 @@ class Application_Model_Mail_Password extends Application_Model_Mail
             $this->setSubject('Gitosis-Webconfiguration: dein Zugang wurde angelegt');
         }
         $this->setBodyHtml($this->_getMailText());
-        
-        return parent::send();
+
+        return parent::send($transport = null);
     }
 
     /**

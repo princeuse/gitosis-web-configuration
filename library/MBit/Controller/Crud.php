@@ -95,6 +95,8 @@ abstract class MBit_Controller_Crud extends Zend_Controller_Action
                     )
             );
 
+            $this->_beforeEditSave();
+
             $successFlag = $this->_model->save();
             $message = "Der Datensatz konnte nicht gespeichert werden";
             if ($successFlag) {
@@ -120,9 +122,10 @@ abstract class MBit_Controller_Crud extends Zend_Controller_Action
             && $this->_form->isValid($this->getRequest()->getPost())
         ) {
             $this->_model->setData(
-                $this->_form->getValidValues($this->getRequest()->getPost()
-                    )
+                $this->_form->getValidValues($this->getRequest()->getPost())
             );
+
+            $this->_beforeCreateSave();
 
             $successFlag = $this->_model->save();
             $message = "Der Datensatz konnte nicht erstellt werden";
@@ -187,6 +190,18 @@ abstract class MBit_Controller_Crud extends Zend_Controller_Action
             throw new MBit_Exception('Forms that are used by the MBit_Controller_Crud have to extends Zend_Form');
         }
     }
+
+    /**
+     * hook for own changes before saving a new object
+     */
+    protected function _beforeCreateSave()
+    { }
+
+    /**
+     * hook for own changes before updating an object
+     */
+    protected function _beforeEditSave()
+    { }
 
     /**
      * @return Zend_Form
