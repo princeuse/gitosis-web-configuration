@@ -120,6 +120,7 @@ class Application_Model_Config
                 $this->_elements[$code] = $configElement;
             }
         } elseif (is_array($configElement) && array_key_exists('code', $configElement) && in_array($configElement['code'], $this->_elementKeys)) {
+            $code = trim((string) $configElement['code']);
             $this->_elements[$code] = new Application_Model_Config_Element();
             $this->_elements[$code]->setData($configElement);
             $this->_hasChanges = true;
@@ -140,10 +141,19 @@ class Application_Model_Config
      * @param array $data
      * @return Application_Model_Config
      */
-    public function setElements($data)
+    public function setFormData($data)
     {
-        Zend_Debug::dump($data, '$data', true);
-        die;
+        if (!is_array($data)) {
+            throw new InvalidArgumentException('$data has to be an array');
+        }
+
+        foreach ($data as $key => $value) {
+            $configElement = array(
+                'code'  => $key,
+                'value' => $value
+            );
+            $this->setElement($configElement);
+        }
     }
 
     /**

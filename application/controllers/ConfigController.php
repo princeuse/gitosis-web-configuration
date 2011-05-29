@@ -40,6 +40,9 @@ class ConfigController extends Zend_Controller_Action
 
         if ($this->getRequest()->isPost() && $form->isValid($this->getRequest()->getPost())) {
             $model = new Application_Model_Config();
+            $model->setFormData(
+                $form->getValidValues($this->getRequest()->getPost())
+            );
         }
 
         $this->view->form = $form;
