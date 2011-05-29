@@ -25,38 +25,37 @@
  */
 
 /**
- * This controller plugin checks if the user tries to get to a secured page. If
- * he is not logged in, it redirects to login page.
- *
  * @category MB-it
  * @package  Lib
  */
 class MBit_Controller_Plugin_Auth extends Zend_Controller_Plugin_Abstract
 {
 
+    /**
+     * This controller plugin checks if the user tries to get to a secured page. If
+     * he is not logged in, it redirects to login page.
+     *
+     * @param Zend_Controller_Request_Abstract $request
+     */
     public function preDispatch(Zend_Controller_Request_Abstract $request)
     {
         $auth = Zend_Auth::getInstance();
 
-        if (!$auth->hasIdentity() &&
-            !( $request->getModuleName()     == "default" &&
-               $request->getControllerName() == "auth" &&
-               $request->getActionName()     == "login") )
-        {
+        if (!$auth->hasIdentity()) {
+
+            if (($request->getModuleName() == 'default' && $request->getControllerName() == 'index' && $request->getActionName() == 'index') ||
+                ($request->getModuleName() == 'default' && $request->getControllerName() == 'auth'  && $request->getActionName() == 'login') ||
+                ($request->getModuleName() == 'default' && $request->getControllerName() == 'license'  && $request->getActionName() == 'index')) {
+                return;
+            }
+
             $redirector = Zend_Controller_Action_HelperBroker::getStaticHelper('redirector');
             $redirector->direct('login', 'auth', 'default', array());
-        }
-        else {
-            if (!( $request->getModuleName()     == "default" &&
-                   $request->getControllerName() == "auth" &&
-                   $request->getActionName()     == "login")) {
-                $cookieValue = $this->getRequest()->getCookie('netz98_login');
-                $dataArray = explode(';', $cookieValue);
-                $user = Entity_User::getByCookie($dataArray[0], $dataArray[1]);
-                $registry = Zend_Registry::getInstance();
-                $registry->set('User', $user);
-            }
+        } else {
+            $identity = $auth->getIdentity();
+            $userModel = new Application_Model_Admin_User();
+            $userModel->load($identity->{'admin_id'});
+            Zend_Registry::set('admin_user', $userModel);
         }
     }
-
 }

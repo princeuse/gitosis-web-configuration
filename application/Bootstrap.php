@@ -97,6 +97,26 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
     }
 
     /**
+     * Controller-Plugins in Front-Controller registrieren
+     *
+     * @return Zend_Controller_Front
+     */
+    protected function _initControllerPlugins ()
+    {
+        $this->bootstrap('autoload');
+        $this->bootstrap('frontController');
+
+        /* @var $front Zend_Controller_Front */
+        $front = $this->getResource('frontController');
+
+        if (PHP_SAPI !== 'cli') {
+            $front->registerPlugin(new MBit_Controller_Plugin_Auth(), 1);
+        }
+
+        return $front;
+    }
+
+    /**
      * setting timezone and language
      *
      * @return Zend_Locale

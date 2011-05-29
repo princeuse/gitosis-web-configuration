@@ -33,29 +33,23 @@
     <?php echo $this->headTitle() ?>
 
 
-    <?php echo $this->headScript()
-                    ->offsetSetFile(-100,$this->baseUrl('/scripts/jquery-1.5.2.min.js')); ?>
-
-    <?php echo $this->headLink()->appendStylesheet($this->baseUrl('/themes/mb-it/styles/style.css'))
-                                // ->headLink(array('rel' => 'shortcut icon', 'type' => $this->baseUrl() . '/image/x-icon', 'href' => '/images/favicon.ico'), 'PREPEND');
-    ?>
+    <?php echo $this->headLink()->appendStylesheet($this->baseUrl('/themes/mb-it/styles/style.css')) ?>
 
 </head>
 <body>
     <div id="page">
+
         <div id="header">
             <div id="logo">
                 <a href="http://www.mb-it.com"><img src="<?php echo $this->baseUrl('/themes/mb-it/images/logo.png'); ?>" alt="MB-it" width="200" /></a>
             </div>
 
             <div id="mainnav">
-                <?php echo $this->navigation()->menu()
-                                              ->setPartial('navi.phtml'); ?>
+                &nbsp;
             </div>
 
             <div id="subnav">
-                <?php echo $this->navigation()->menu()
-                                              ->setPartial('subnavi.phtml'); ?>
+                &nbsp;
             </div>
         </div>
 

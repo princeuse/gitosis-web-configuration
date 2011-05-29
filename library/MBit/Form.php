@@ -41,6 +41,18 @@ abstract class MBit_Form extends Zend_Form
     	'LabelExt',
     	'Errors',
     	array('HtmlTag', array ('tag' => 'p'))
+
+    );
+    /**
+     * standard decorator for elements (paragraph)
+     *
+     * @var array
+     */
+    protected $_elementDecoratorParagraphNoExt = array(
+        'ViewHelper',
+    	'Label',
+    	'Errors',
+    	array('HtmlTag', array ('tag' => 'p'))
     );
 
     /**

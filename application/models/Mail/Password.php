@@ -101,7 +101,7 @@ class Application_Model_Mail_Password extends Application_Model_Mail
         $view = new Zend_View();
         $view->setScriptPath($viewPath);
 
-        $view->login = $this->_user->getLogin();
+        $view->login    = $this->_user->getLogin();
         $view->password = $this->_user->generateNewPassword();
 
         $html = null;

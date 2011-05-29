@@ -32,6 +32,11 @@ class Application_Model_Admin_User implements MBit_Model_CrudInterface
 {
 
     /**
+     * @static string
+     */
+    const COOKIE_NAME = 'gitosis_web_configuration_login';
+
+    /**
      * @var int
      */
     protected $_id = null;
@@ -52,9 +57,105 @@ class Application_Model_Admin_User implements MBit_Model_CrudInterface
     protected $_password = null;
 
     /**
+     * @var string
+     */
+    protected $_cookie = null;
+
+    /**
      * @var array
      */
     protected $_originData = null;
+
+    /**
+     * login the user in via credentials
+     *
+     * @param string $username
+     * @param string $password
+     * @return bool
+     */
+    public function loginWithCredentials($username, $password)
+    {
+        // Auth-Adapter
+        $adapter = new Zend_Auth_Adapter_DbTable(Zend_Db_Table::getDefaultAdapter());
+        $adapter->setTableName('admin_users')
+                ->setIdentityColumn('admin_login')
+                ->setCredentialColumn('admin_password')
+                ->setCredentialTreatment('MD5(?)')
+                ->setIdentity($username)
+                ->setCredential($password);
+
+        $auth = Zend_Auth::getInstance();
+        $result = $auth->authenticate($adapter);
+
+        if ($result->isValid()) {
+
+            $storage = $auth->getStorage();
+            $storage->write(
+                $adapter->getResultRowObject(array('admin_id', 'admin_login'))
+            );
+
+            $userObject = $adapter->getResultRowObject('admin_id');
+            $userId = $userObject->{'admin_id'};
+
+            $this->load($userId);
+            $this->setCookie(substr(md5(uniqid(rand(), true)), 0, 200));
+            $this->save();
+
+            $registry = Zend_Registry::getInstance();
+            $registry->set('admin_user', $this);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * login the user in via cookie
+     *
+     * @param string $cookie
+     * @return bool
+     */
+    public function loginWithCookie($cookie)
+    {
+        $cookie = trim((string) $cookie);
+        if (empty($cookie)) {
+            return false;
+        }
+
+        $dataArray = explode(';', $cookie);
+        if (!count($dataArray) == 2) {
+            return false;
+        }
+
+        $this->setLogin(trim((string) $dataArray[0]));
+        $this->setCookie(trim((string) $dataArray[1]));
+
+        // Auth-Adapter
+        $adapter = new Zend_Auth_Adapter_DbTable(Zend_Db_Table::getDefaultAdapter());
+        $adapter->setTableName('admin_users')
+                ->setIdentityColumn('admin_login')
+                ->setCredentialColumn('admin_cookie')
+                ->setIdentity($this->getLogin())
+                ->setCredential($this->getCookie());
+
+        $auth = Zend_Auth::getInstance();
+        $result = $auth->authenticate($adapter);
+        if ($result->isValid()) {
+
+            $storage = $auth->getStorage();
+            $storage->write(
+                $adapter->getResultRowObject(array('admin_id', 'admin_login'))
+            );
+
+            $userObject = $adapter->getResultRowObject('admin_id');
+            $userId = $userObject->{'admin_id'};
+            $this->load($userId);
+
+            $registry = Zend_Registry::getInstance();
+            $registry->set('admin_user', $this);
+            return true;
+        }
+        return false;
+    }
 
     /**
      * @return int
@@ -78,6 +179,14 @@ class Application_Model_Admin_User implements MBit_Model_CrudInterface
     public function getEmail()
     {
         return $this->_email;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCookie()
+    {
+        return $this->_cookie;
     }
 
     /**
@@ -108,8 +217,8 @@ class Application_Model_Admin_User implements MBit_Model_CrudInterface
         }
         $password = substr(implode('',$passwordChars),0,$length);
         $this->setPassword($password);
-        
-        return $this->_password;
+
+        return $password;
     }
 
     /**
@@ -151,6 +260,28 @@ class Application_Model_Admin_User implements MBit_Model_CrudInterface
     }
 
     /**
+     * @param string $cookie
+     * @return Application_Model_Admin_User
+     */
+    public function setCookie($cookie)
+    {
+        $cookie = trim((string) $cookie);
+        if (!empty($cookie)) {
+            $this->_cookie = $cookie;
+        }
+        return $this;
+    }
+
+    /**
+     * @return Application_Model_Admin_User
+     */
+    public function unsetCookie()
+    {
+        $this->_cookie = null;
+        return $this;
+    }
+
+    /**
      * @param string $password
      * @return Application_Model_Admin_User
      */
@@ -175,9 +306,12 @@ class Application_Model_Admin_User implements MBit_Model_CrudInterface
         }
 
         if ($this->getId() > 0) {
+
             $userModel = new Application_Model_Db_Users();
             $rows = $userModel->find($this->getId());
+
             if ($rows->count() == 1) {
+
                 $data = $rows->current()->toArray();
                 $this->_originData = $data;
 
@@ -198,8 +332,13 @@ class Application_Model_Admin_User implements MBit_Model_CrudInterface
                         case 'admin_password':
                             $this->_password = $value;
                             break;
+
+                        case 'admin_cookie':
+                            $this->setCookie($value);
+                            break;
                     }
                 }
+
             } else {
                 $this->_id = null;
             }
@@ -291,10 +430,12 @@ class Application_Model_Admin_User implements MBit_Model_CrudInterface
     public function save()
     {
         $userModel = new Application_Model_Db_Users();
+
         $dbData = array(
             'admin_login'       => $this->getLogin(),
             'admin_password'    => $this->getPassword(),
-            'admin_email'       => $this->getEmail()
+            'admin_email'       => $this->getEmail(),
+            'admin_cookie'      => $this->getCookie()
         );
 
         if (!($this->getId())) {
@@ -322,5 +463,4 @@ class Application_Model_Admin_User implements MBit_Model_CrudInterface
         }
         return false;
     }
-
 }
