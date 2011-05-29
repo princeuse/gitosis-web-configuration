@@ -33,18 +33,7 @@
 
 <h1>Gitosis Gruppen</h1>
 
-<?php
-    $messages = $this->messages;
-    if (!empty($messages)):
-?>
-    <div id="messages">
-        <ul>
-            <?php foreach ($messages as $message): ?>
-                <li><?php echo $this->escape($message); ?></li>
-            <?php endforeach; ?>
-        </ul>
-    </div>
-<?php endif; ?>
+<?php echo $this->partial('messages.phtml', array('messages' => $this->messages)); ?>
 
 <?php if ($this->pager->count() < 1): ?>
     keine Gruppen im System erfasst
