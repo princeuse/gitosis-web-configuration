@@ -243,4 +243,32 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         return $logger;
     }
 
+    /**
+     * initialise audit log
+     *
+     * audit log is storing information about changes in configuration. When commiting and pushing informations this
+     * log entries are added as comments.
+     *
+     * @return Zend_Log
+     */
+    protected function _initAuditLog()
+    {
+
+        $dbAdapter = $this->getResource('database');
+
+        $columnMapping = array(
+            'audit_log_message'     => 'message',
+            'audit_log_timestamp'   => 'timestamp'
+        );
+
+        $logWriter = new Zend_Log_Writer_Db($dbAdapter, 'audit_log', $columnMapping);
+        $logger = new Zend_Log($logWriter);
+
+        $this->bootstrap('registry');
+        $registry = Zend_Registry::getInstance();
+        $registry->Audit_Log = $logger;
+
+        return $logger;
+    }
+
 }
