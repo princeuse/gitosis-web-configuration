@@ -1,3 +1,5 @@
 nbproject/
 var/log/*.log
 var/session/sess_*
+
+.idea/*
