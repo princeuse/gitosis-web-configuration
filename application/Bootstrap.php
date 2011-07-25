@@ -36,6 +36,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
     const ENV_PROD  = 'production';
     const ENV_STAG  = 'staging';
     const ENV_DEV   = 'development';
+    const ENV_TEST  = 'unit-testing';
 
     /**
      * initialise view

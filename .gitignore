@@ -1,5 +1,7 @@
 nbproject/
 var/log/*.log
 var/session/sess_*
-
 .idea/*
+build/api/**
+build/code-coverage/**
+build/api/clover.xml
