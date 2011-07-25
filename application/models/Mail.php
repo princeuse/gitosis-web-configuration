@@ -56,6 +56,7 @@ class Application_Model_Mail extends Zend_Mail
             return;
         }
         $mailOptions = $options['mail'];
+        unset($options);
 
         $senderMail = $mailOptions['sender']['from'];
         $senderName = $mailOptions['sender']['name'];
@@ -66,7 +67,7 @@ class Application_Model_Mail extends Zend_Mail
         $sendViaSmtp = ($mailOptions['sendViaSmtp'] == 1 ? true : false);
         if ($sendViaSmtp) {
             if (!array_key_exists('host', $mailOptions['smtp'])) {
-                throw new MBit_Exception('while sending mails via smtp, a host has to be configured');
+                throw new MBit_Exception('for sending mails via smtp, a host has to be configured');
             }
 
             $host = trim((string) $mailOptions['smtp']['host']);

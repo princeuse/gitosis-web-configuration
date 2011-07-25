@@ -31,7 +31,7 @@
 class Application_Model_Mail_Password extends Application_Model_Mail
 {
     /**
-     * this flag indicates, whether the password was forgotten
+     * this flag indicates, whether the password was forgotten or not
      *
      * @var bool
      */
@@ -44,7 +44,7 @@ class Application_Model_Mail_Password extends Application_Model_Mail
 
     /**
      * @param bool $flag
-     * @return Entity_Mail_Password
+     * @return Application_Model_Mail_Password
      */
     public function setPasswordAsForgotten($flag = true)
     {
@@ -77,8 +77,9 @@ class Application_Model_Mail_Password extends Application_Model_Mail
     public function send($transport = null)
     {
         if (empty($this->_user)) {
-            throw new MBit_Exception('user model has to be set for sending password mails');
+            throw new MBit_Exception('user has to be set for sending password mails');
         }
+
         $this->addTo($this->_user->getEmail());
         if ($this->isPasswordForgotten()) {
             $this->setSubject('Gitosis-Webconfiguration: Passwort vergessen');
@@ -87,7 +88,7 @@ class Application_Model_Mail_Password extends Application_Model_Mail
         }
         $this->setBodyHtml($this->_getMailText());
 
-        return parent::send($transport = null);
+        return parent::send($transport);
     }
 
     /**

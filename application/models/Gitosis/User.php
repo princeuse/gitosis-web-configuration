@@ -94,14 +94,22 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
      * @return Application_Model_Gitosis_User
      * @throws InvalidArgumentException
      */
-    public function loadByMail($email)
+    public function loadByMail($email = null)
     {
-        if (empty($email)) {
+        if (!empty($email)) {
+            $this->setMailAdress($email);
+        }
+
+        if (empty($this->_mail)) {
             throw new InvalidArgumentException('email has to be set or given via parameter');
         }
 
         $dbModel = new Application_Model_Db_Gitosis_Users();
         $userId = $dbModel->getByEmail($email);
+        if (!$userId) {
+            $this->_id = null;
+            $this->_mail = null;
+        }
         return $this->load($userId);
     }
 
@@ -288,12 +296,13 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
         }
 
         if ($groupId <= 0) {
-            throw new InvalidArgumentException('no group id given');
+            throw new InvalidArgumentException('no group id given, skipping add');
         }
 
         if (!is_array($this->_groups) || !in_array($groupId, $this->_groups)) {
-                $this->_groups[] = $groupId;
-                sort($this->_groups);
+            Zend_Registry::get('Audit_Log')->info('user "' . $this->getName() . '" added to group "' . $groupId . '"');
+            $this->_groups[] = $groupId;
+            sort($this->_groups);
         }
         return $this;
     }
@@ -341,12 +350,13 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
         }
 
         if ($groupId <= 0) {
-            throw new InvalidArgumentException('no group id given');
+            throw new InvalidArgumentException('no group id given, skipping remove');
         }
 
         if (is_array($this->_groups) && in_array($groupId, $this->_groups)) {
             foreach ($this->_groups as $key => $value) {
                 if ($groupId == $value) {
+                    Zend_Registry::get('Audit_Log')->info('user "' . $this->getName() . '" removed from group "' . $value . '"');
                     unset ($this->_groups[$key]);
                 }
             }
@@ -422,7 +432,7 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
      */
     public function setData($data)
     {
-        if (empty($data)) {
+        if (empty($data) || !is_array($data)) {
             return;
         }
 
@@ -462,7 +472,7 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
     protected function _loadUser()
     {
         if (empty($this->_id)) {
-            throw new UnexpectedValueException('no user id given, can\'t load user');
+            throw new UnexpectedValueException('no user id given, can\'t load user from database');
         }
 
         $userModel = new Application_Model_Db_Gitosis_Users();
@@ -474,7 +484,7 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
             foreach ($userData as $fieldName => $fieldValue) {
                 switch ($fieldName) {
                     case 'gitosis_user_id':
-                        $this->_id = intval($fieldValue);
+                        $this->setId($fieldValue);
                         break;
 
                     case 'gitosis_user_name':
