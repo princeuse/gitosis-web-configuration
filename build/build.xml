@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="gitosis-web-configuration" default="main">
+
+    <property name="rootDir" value="${application.startdir}/../" />
+    <property name="docDir" value="${rootDir}/build/api/" />
+    <property name="appDir" value="${rootDir}/application/" />
+    <property name="libDir" value="${rootDir}/library/MBit/" />
+
+    <target name="phpdoc">
+        <phpdoc title="Gitosis Web Configuration"
+                destdir="${docDir}"
+                sourcecode="true"
+                output="HTML:frames:earthli">
+            <fileset dir="${appDir}">
+                <include name="**/*.php" />
+            </fileset>
+            <fileset dir="${libDir}">
+                <include name="**/*.php" />
+            </fileset>
+        </phpdoc>
+    </target>
+
+</project>
