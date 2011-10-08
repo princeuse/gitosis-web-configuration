@@ -26,36 +26,68 @@
  * @copyright Copyright 2011 MB-it (http://www.mb-it.com)
  * @author    mbecker
  * @category  MB-it
- * @package   UnitTests
+ * @package   Models
  */
-error_reporting(E_ALL | E_STRICT);
 
-define('APPLICATION_ENV', 'unit-testing');
-define('APPLICATION_PATH', realpath(dirname(__FILE__) . '/../application'));
+/**
+ * @copyright Copyright 2011 MB-it (http://www.mb-it.com)
+ * @author    mbecker
+ * @category  MB-it
+ * @package   Models
+ */
+class Application_Model_Audit
+{
+    /**
+     * @var Application_Model_Audit
+     */
+    static protected $_instance = null;
 
-set_include_path(
-    implode(
-        PATH_SEPARATOR,
-        array (
-            '.',
-            realpath(APPLICATION_PATH . '/../library'),
-            get_include_path()
-        )
-    )
-);
+    /**
+     * @var Zend_Log
+     */
+    protected $_auditLog = null;
 
-require_once 'Zend/Loader/Autoloader.php';
-require_once 'Zend/Application.php';
+    /**
+     * Getting instance of this class
+     *
+     * @return Application_Model_Audit
+     */
+    static public function getInstance()
+    {
+        if (self::$_instance === null) {
+            self::$_instance = new self();
+        }
+        return self::$_instance;
+    }
 
-$loader = Zend_Loader_Autoloader::getInstance();
+    /**
+     * Logging audit string
+     *
+     * @param string $message
+     * @return Application_Model_Audit
+     */
+    public function log($message)
+    {
+        $message = trim((string) $message);
+        if (!empty($message)) {
+            $this->_auditLog->info($message);
+        }
+        return $this;
+    }
 
-Zend_Session::$_unitTestEnabled = true;
+     /**
+     * Constructor
+     */
+    private function __construct()
+    {
+        $this->_auditLog = Zend_Registry::get('Audit_Log');
+    }
 
-// Create application, bootstrap, and run
-$application = new Zend_Application(
-    APPLICATION_ENV,
-    APPLICATION_PATH . '/configs/application.ini'
-);
-
-$application->bootstrap();
-Zend_Registry::set('app', $application);
+    /**
+     * Disable cloning of class
+     *
+     * @return void
+     */
+    private function __clone()
+    { }
+}

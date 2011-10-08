@@ -46,7 +46,7 @@
     </div>
 <?php endif; ?>
 
-<?php if ($this->pager->count() < 1): ?>
+<?php if ($this->pager->getTotalItemCount() < 1): ?>
     keine Benutzer im System erfasst
 <?php else: ?>
     <table width="100%">

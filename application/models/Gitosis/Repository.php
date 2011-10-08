@@ -407,6 +407,7 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
             return false;
         }
 
+        Application_Model_Audit::getInstance()->log('deleted repository ' . $this->getName());
         $repoModel = new Application_Model_Db_Gitosis_Repositories();
         if ($repoModel->deleteItem($repoId)) {
             return true;
@@ -458,6 +459,7 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
         if (empty($repoId)) {
             $primId = $repoModel->insert($dbData);
             if ($primId > 0) {
+                Application_Model_Audit::getInstance()->log('added repository ' . $this->getName());
                 $this->_id = intval($primId);
                 return true;
             }
@@ -476,6 +478,7 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
             if (empty($dbData)) {
                 return true;
             } else {
+                Application_Model_Audit::getInstance()->log('updated repository ' . $this->getName());
                 return (bool) $repoModel->update($dbData, array('gitosis_repository_id = ?' => $repoId));
             }
         }
@@ -500,6 +503,7 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
             if (!empty($addedGroups)) {
                 foreach ($addedGroups as $groupId) {
                     $added = $groupRepoModel->addRepoGroupRelation($repoId, $groupId, $this->_groups[$groupId]);
+                    Application_Model_Audit::getInstance()->log('added group with id "' . $groupId . '" to repository ' . $this->getName());
                     if ($returnFlag && !$added) {
                         $returnFlag = false;
                     }
@@ -509,6 +513,7 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
 
             if (!empty($removedGroups)) {
                 foreach ($removedGroups as $groupId) {
+                    Application_Model_Audit::getInstance()->log('removed group with id "' . $groupId . '" from repository ' . $this->getName());
                     $removed = $groupRepoModel->deleteRepoGroupRelation($repoId, $groupId);
                     if ($returnFlag && !$removed) {
                         $returnFlag = false;
@@ -540,7 +545,7 @@ class Application_Model_Gitosis_Repository implements MBit_Model_CrudInterface
         if (intval($groupId) <= 0) {
             $groupId = -1;
         }
-        
+
         return $groupId;
     }
 

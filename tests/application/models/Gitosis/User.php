@@ -28,34 +28,14 @@
  * @category  MB-it
  * @package   UnitTests
  */
-error_reporting(E_ALL | E_STRICT);
 
-define('APPLICATION_ENV', 'unit-testing');
-define('APPLICATION_PATH', realpath(dirname(__FILE__) . '/../application'));
-
-set_include_path(
-    implode(
-        PATH_SEPARATOR,
-        array (
-            '.',
-            realpath(APPLICATION_PATH . '/../library'),
-            get_include_path()
-        )
-    )
-);
-
-require_once 'Zend/Loader/Autoloader.php';
-require_once 'Zend/Application.php';
-
-$loader = Zend_Loader_Autoloader::getInstance();
-
-Zend_Session::$_unitTestEnabled = true;
-
-// Create application, bootstrap, and run
-$application = new Zend_Application(
-    APPLICATION_ENV,
-    APPLICATION_PATH . '/configs/application.ini'
-);
-
-$application->bootstrap();
-Zend_Registry::set('app', $application);
+/**
+ * @copyright Copyright 2011 MB-it (http://www.mb-it.com)
+ * @author    mbecker
+ * @category  MB-it
+ * @package   UnitTests
+ */
+class Application_Model_Gitosis_User extends PHPUnit_Framework_TestCase
+{
+    protected $_model = null;
+}

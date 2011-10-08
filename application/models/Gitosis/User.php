@@ -89,7 +89,7 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
 
     /**
      * loading user by email
-     * 
+     *
      * @param string $email
      * @return Application_Model_Gitosis_User
      * @throws InvalidArgumentException
@@ -142,6 +142,7 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
             throw new InvalidArgumentException('user id has to be set or given via parameter, skipping remove');
         }
 
+        Application_Model_Audit::getInstance()->log('deleted user ' . $this->getName() . '(' . $this->getMailAdress() . ')');
         $model = new Application_Model_Db_Gitosis_Users();
         return $model->deleteItem($this->_id);
     }
@@ -542,6 +543,7 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
         if (!$this->_id) {
             $primId = $userModel->insert($dbData);
             if ($primId) {
+                Application_Model_Audit::getInstance()->log('added new user ' . $this->getName() . '(' . $this->getMailAdress() . ')');
                 $this->_id = $primId;
                 return true;
             } else {
@@ -563,6 +565,7 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
                 );
 
                 if ($rows == 1) {
+                    Application_Model_Audit::getInstance()->log('updated user ' . $this->getName() . '(' . $this->getMailAdress() . ')');
                     return true;
                 }
             }
@@ -602,12 +605,14 @@ class Application_Model_Gitosis_User implements MBit_Model_CrudInterface
         $groupModel = new Application_Model_Db_Gitosis_UsersGroups();
         if (!empty($addedGroups)) {
             foreach ($addedGroups as $groupId) {
+                Application_Model_Audit::getInstance()->log('added user ' . $this->getName() . '(' . $this->getMailAdress() . ') to group "' . $groupId . '"');
                 $groupModel->addUserToGroup($groupId, $userId);
             }
         }
 
         if (!empty($removedGroups)) {
             foreach ($removedGroups as $groupId) {
+                Application_Model_Audit::getInstance()->log('removed user ' . $this->getName() . '(' . $this->getMailAdress() . ') from group "' . $groupId . '"');
                 $groupModel->removeUserFromGroup($groupId, $userId);
             }
         }

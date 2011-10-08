@@ -90,9 +90,11 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
      * @return Application_Model_Gitosis_Group
      * @throws InvalidArgumentException
      */
-    public function loadByName($name)
+    public function loadByName($paramName = null)
     {
-        $name = trim((string) $name);
+        $this->setName($paramName);
+
+        $name = $this->getName();
         if (empty($name)) {
             throw new InvalidArgumentException('group name has to be set or given via parameter');
         }
@@ -154,13 +156,18 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
             return;
         }
 
+        $loadById = false;
+        $loadByName = false;
+
         foreach ($data as $key => $value) {
             switch ($key) {
                 case 'id':
+                    $loadById = true;
                     $this->setId($value);
                     break;
 
                 case 'name':
+                    $loadByName = true;
                     $this->setName($value);
                     break;
 
@@ -182,6 +189,12 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
                     }
                     break;
             }
+        }
+
+        if ($loadById) {
+            $this->load();
+        } elseif ($loadByName) {
+            $this->loadByName();
         }
     }
 
@@ -211,6 +224,7 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
             throw new InvalidArgumentException('no group id set, skipping removing of group');
         }
 
+        Application_Model_Audit::getInstance()->log('deleted group ' . $this->getName());
         $groupModel = new Application_Model_Db_Gitosis_Groups();
         return $groupModel->deleteItem($this->_id);
     }
@@ -578,6 +592,7 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
             $primId = $groupModel->insert($dbData);
             if ($primId) {
                 $this->_id = $primId;
+                Application_Model_Audit::getInstance()->log('added new group ' . $this->getName());
                 return true;
             }
         } else {
@@ -591,6 +606,7 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
             if (empty($dbData)) {
                 return true;
             } else {
+                Application_Model_Audit::getInstance()->log('updated group ' . $this->getName());
                 return (bool) $groupModel->update(
                     $dbData,
                     array('gitosis_group_id = ?' => $this->_id)
@@ -623,6 +639,7 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
         $groupRepoModel = new Application_Model_Db_Gitosis_GroupRights();
         if (!empty($removedRepos)) {
             foreach ($removedRepos as $repoId) {
+                Application_Model_Audit::getInstance()->log('removed repository with id "' . $repoId . '" from group ' . $this->getName());
                 $groupRepoModel->deleteRepoGroupRelation($repoId, $groupId);
             }
             unset($repoId);
@@ -630,6 +647,7 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
 
         if (!empty($addedRepos)) {
             foreach ($addedRepos as $repoId) {
+                Application_Model_Audit::getInstance()->log('added repository with id "' . $repoId . '" to group ' . $this->getName());
                 $groupRepoModel->addRepoGroupRelation($repoId, $groupId, $this->_repositories[$repoId]);
             }
         }
@@ -654,6 +672,7 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
         $groupUserModel = new Application_Model_Db_Gitosis_UsersGroups();
         if (!empty($removedUsers)) {
             foreach ($removedUsers as $userId) {
+                Application_Model_Audit::getInstance()->log('removed user with id "' . $userId . '" from group ' . $this->getName());
                 $groupUserModel->removeUserFromGroup($groupId, $userId);
             }
             unset($userId);
@@ -661,6 +680,7 @@ class Application_Model_Gitosis_Group implements MBit_Model_CrudInterface
 
         if (!empty($addedUsers)) {
             foreach ($addedUsers as $userId) {
+                Application_Model_Audit::getInstance()->log('added user with id "' . $userId . '" to group ' . $this->getName());
                 $groupUserModel->addUserToGroup($groupId, $userId);
             }
         }
